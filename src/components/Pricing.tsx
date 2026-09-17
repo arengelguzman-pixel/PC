@@ -10,9 +10,9 @@ const TABLA: [string, string, string][] = [
 
 export default function Pricing() {
   return (
-    <section className="bg-[#0A0605] py-16 md:py-24 px-6">
+    <section className="bg-negro py-16 md:py-24 px-6">
       <div className="max-w-3xl mx-auto">
-        <h2 className="font-press-start text-lima text-xl sm:text-3xl md:text-4xl leading-tight uppercase">Cuánto sale</h2>
+        <h2 className="font-press-start text-maiz text-xl sm:text-3xl md:text-4xl leading-tight uppercase">Cuánto sale</h2>
 
         <div className="mt-7 border-[3px] border-carbon bg-crema text-carbon p-6 shadow-[7px_7px_0_var(--color-azul)]">
           <span className="font-press-start text-[9px] bg-carbon text-lima px-3 py-2 tracking-widest">PLAN MENÚ VIVO</span>

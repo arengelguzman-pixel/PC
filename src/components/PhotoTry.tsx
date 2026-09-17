@@ -109,10 +109,10 @@ const PhotoTry = forwardRef<PhotoTryHandle>(function PhotoTry(_props, ref) {
   const actBA = useRef(false);
 
   return (
-    <section ref={seccionRef} id="probar" className="bg-carbon py-16 md:py-24 px-6">
+    <section ref={seccionRef} id="probar" className="bg-negro py-16 md:py-24 px-6">
       <div className="max-w-2xl mx-auto">
-        <span className="font-press-start text-[9px] bg-lima text-carbon px-3 py-2 tracking-widest">✱ PRUÉBALO CON TU COMIDA</span>
-        <h2 className="font-press-start text-lima text-xl sm:text-3xl md:text-4xl leading-tight mt-5 uppercase">Sube una foto<br /><span className="text-crema">y mira qué pasa.</span></h2>
+        <span className="font-press-start text-[9px] bg-maiz text-negro px-3 py-2 tracking-widest">✱ PRUÉBALO CON TU COMIDA</span>
+        <h2 className="font-press-start text-maiz text-xl sm:text-3xl md:text-4xl leading-tight mt-5 uppercase">Sube una foto<br /><span className="text-crema">y mira qué pasa.</span></h2>
         <p className="mt-4 text-crema/80 max-w-lg">Sácale una foto a un plato tuyo ahora, o elige una de tu galería. La arregla el mismo motor que usamos para las cartas de verdad. Tarda unos segundos.</p>
 
         <div className="mt-6 border-2 border-dashed border-crema/25 p-5">
@@ -126,7 +126,7 @@ const PhotoTry = forwardRef<PhotoTryHandle>(function PhotoTry(_props, ref) {
         </div>
 
         <input ref={inputRef} type="file" accept="image/*" hidden onChange={onFile} />
-        <button onClick={abrir} className="w-full mt-5 font-press-start text-[11px] text-carbon bg-lima border-[3px] border-carbon py-6 shadow-[5px_5px_0_var(--color-azul)] active:translate-y-1 active:shadow-none transition-all uppercase tracking-widest cursor-pointer">
+        <button onClick={abrir} className="w-full mt-5 font-press-start text-[11px] text-crema bg-rojo border-[3px] border-negro py-6 shadow-[5px_5px_0_var(--color-maiz)] active:translate-y-1 active:shadow-none transition-all uppercase tracking-widest cursor-pointer">
           📷 Elegir una foto ▸
         </button>
         <p className="text-center text-sm text-crema/50 mt-3">Se usa solo para arreglarla. No la guardamos ni la publicamos.</p>

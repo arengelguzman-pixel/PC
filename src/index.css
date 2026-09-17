@@ -6,13 +6,16 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-body: "Inter Tight", system-ui, -apple-system, Roboto, sans-serif;
 
-  /* Paleta PLATO VIVO sobre el lienguaje brutalista del spec */
-  --color-lima: #C6FF3D;      /* acento primario */
-  --color-azul: #1B2FD8;      /* acento secundario (sombras, cintas) */
+  /* Paleta PLATO VIVO: rojo + amarillo + azul llamativos (línea del prompt) */
+  --color-rojo: #E11B14;      /* dominante de marca */
+  --color-rojo2: #B5120D;
+  --color-maiz: #F2B33D;      /* amarillo acento */
+  --color-azul: #1B2FD8;      /* azul acento (cintas, sombras) */
+  --color-lima: #C6FF3D;      /* verde limón, remate */
   --color-brasa: #E8531F;     /* calor de comida */
-  --color-maiz: #F2B33D;
   --color-crema: #FFF3E4;
-  --color-carbon: #05070A;    /* casi negro (slate-950-ish) */
+  --color-negro: #120A09;     /* negro cálido */
+  --color-carbon: #0A0605;    /* casi negro */
 }
 
 :root {
@@ -22,7 +25,7 @@
 
 * { -webkit-tap-highlight-color: transparent; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: #020617; color: var(--color-crema); font-family: var(--font-body); }
+body { margin: 0; background: var(--color-negro); color: var(--color-crema); font-family: var(--font-body); }
 :focus-visible { outline: 3px solid var(--color-lima); outline-offset: 3px; }
 
 /* ---- marquesina ---- */

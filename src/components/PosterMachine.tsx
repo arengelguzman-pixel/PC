@@ -35,10 +35,10 @@ export default function PosterMachine() {
   }, [oSel, pSel, frase]);
 
   return (
-    <section id="redes" className="bg-carbon py-16 md:py-24 px-6">
+    <section id="redes" className="bg-rojo py-16 md:py-24 px-6">
       <div className="max-w-5xl mx-auto">
         <span className="font-press-start text-[9px] bg-azul text-white px-3 py-2 tracking-widest">✱ TUS REDES, RESUELTAS</span>
-        <h2 className="font-press-start text-lima text-xl sm:text-3xl md:text-4xl leading-tight mt-5 uppercase">Dilo con<br /><span className="text-crema">tus palabras.</span></h2>
+        <h2 className="font-press-start text-maiz text-xl sm:text-3xl md:text-4xl leading-tight mt-5 uppercase" style={{ textShadow: '3px 3px 0 var(--color-negro)' }}>Dilo con<br /><span className="text-crema">tus palabras.</span></h2>
         <p className="mt-4 text-crema/80 max-w-lg">No tienes que saber diseñar ni escribir para redes. Eliges tres cosas, escribes una frase como se la dirías a un amigo, y listo.</p>
 
         <div className="grid md:grid-cols-2 gap-8 mt-8 items-start">

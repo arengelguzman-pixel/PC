@@ -8,6 +8,14 @@ export const MARCA = {
   whatsapp: '', // número destino; vacío = sólo demo
 };
 
+// Video de fondo del hero: el muñeco encapuchado que hace las transiciones
+// (streams HLS del diseño de referencia). Cambiar estas URLs por las propias
+// cuando estén listas — el resto del hero no cambia.
+export const VIDEO_HERO = {
+  uno: 'https://stream.mux.com/W2NRcV6MrewS7QyWWqAWZvJR9jrnPU5rxymlPg01gRzk.m3u8',
+  dos: 'https://stream.mux.com/aypDi1exkKgYKEbWme9Csi47zxIim0101hw3ghmSzQIyw.m3u8',
+};
+
 // Frases del typewriter del hero (se escriben y borran)
 export const HERO_FRASES = [
   '¿PLATO SIN VIDA?',

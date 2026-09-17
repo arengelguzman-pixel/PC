@@ -37,7 +37,7 @@ export default function MenuSection() {
     <section id="menu" className="bg-[#0A0605] py-16 md:py-24 px-6">
       <div className="max-w-5xl mx-auto">
         <span className="font-press-start text-[9px] bg-brasa text-white px-3 py-2 tracking-widest">✱ TU CARTA, EN 3D</span>
-        <h2 className="font-press-start text-lima text-xl sm:text-3xl md:text-4xl leading-tight mt-5 uppercase">El menú que<br /><span className="text-crema">gira con el dedo.</span></h2>
+        <h2 className="font-press-start text-maiz text-xl sm:text-3xl md:text-4xl leading-tight mt-5 uppercase">El menú que<br /><span className="text-crema">gira con el dedo.</span></h2>
         <p className="mt-4 text-crema/80 max-w-lg">El cliente escanea el QR de la mesa, ve tus platos con foto de verdad, los gira en 3D y arma su pedido. Tú no escribes nada.</p>
 
         {/* visor 3D destacado */}
