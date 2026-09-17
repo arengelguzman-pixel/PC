@@ -34,7 +34,7 @@ export default function MenuSection() {
   };
 
   return (
-    <section id="menu" className="bg-[#0A0605] py-16 md:py-24 px-6">
+    <section id="menu" className="bg-negro/55 py-16 md:py-24 px-6">
       <div className="max-w-5xl mx-auto">
         <span className="font-press-start text-[9px] bg-brasa text-white px-3 py-2 tracking-widest">✱ TU CARTA, EN 3D</span>
         <h2 className="font-press-start text-maiz text-xl sm:text-3xl md:text-4xl leading-tight mt-5 uppercase">El menú que<br /><span className="text-crema">gira con el dedo.</span></h2>

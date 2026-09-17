@@ -7,7 +7,7 @@ import Reveal from './Reveal';
 export default function BeforeAfterSection() {
   const [primero, ...resto] = BEFORE_AFTER;
   return (
-    <section id="antes-despues" className="bg-rojo py-16 md:py-24 px-6">
+    <section id="antes-despues" className="bg-rojo/60 py-16 md:py-24 px-6">
       <Reveal className="max-w-2xl mx-auto">
         <span className="font-press-start text-[9px] bg-maiz text-negro px-3 py-2 tracking-widest">✱ ANTES / DESPUÉS · IA</span>
         <h2 className="font-press-start text-lima text-xl sm:text-3xl md:text-4xl leading-tight mt-5 uppercase" style={{ textShadow: '3px 3px 0 var(--color-negro)' }}>

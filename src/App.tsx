@@ -35,7 +35,7 @@ export default function App() {
       <Marquee variant="band" />
 
       {/* Las dos cosas */}
-      <section className="bg-negro py-16 md:py-24 px-6">
+      <section className="bg-negro/55 py-16 md:py-24 px-6">
         <Reveal className="max-w-4xl mx-auto">
           <h2 className="font-press-start text-maiz text-xl sm:text-3xl md:text-4xl leading-tight uppercase">Hacemos<br /><span className="text-crema">dos cosas.</span></h2>
           <p className="mt-4 text-crema/80 max-w-lg">Nada más. Pero esas dos las hacemos bien, y son las dos que te faltan.</p>
@@ -68,7 +68,7 @@ export default function App() {
       <PosterMachine />
       <Pricing />
 
-      <footer id="contacto" className="bg-negro border-t-4 border-maiz py-16 px-6 text-center">
+      <footer id="contacto" className="bg-negro/70 border-t-4 border-maiz py-16 px-6 text-center">
         <div className="font-press-start text-maiz text-lg">{MARCA.nombre}</div>
         <p className="text-crema/50 text-sm mt-4">{MARCA.ciudad}<br />{MARCA.eslogan}</p>
         <p className="text-crema/40 text-xs mt-6 max-w-md mx-auto font-mono">Desliza hasta abajo para dejarnos tu contacto — o toca "Contacto" arriba.</p>

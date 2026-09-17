@@ -109,7 +109,7 @@ const PhotoTry = forwardRef<PhotoTryHandle>(function PhotoTry(_props, ref) {
   const actBA = useRef(false);
 
   return (
-    <section ref={seccionRef} id="probar" className="bg-negro py-16 md:py-24 px-6">
+    <section ref={seccionRef} id="probar" className="bg-negro/55 py-16 md:py-24 px-6">
       <div className="max-w-2xl mx-auto">
         <span className="font-press-start text-[9px] bg-maiz text-negro px-3 py-2 tracking-widest">✱ PRUÉBALO CON TU COMIDA</span>
         <h2 className="font-press-start text-maiz text-xl sm:text-3xl md:text-4xl leading-tight mt-5 uppercase">Sube una foto<br /><span className="text-crema">y mira qué pasa.</span></h2>
