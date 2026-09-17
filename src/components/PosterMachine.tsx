@@ -35,7 +35,7 @@ export default function PosterMachine() {
   }, [oSel, pSel, frase]);
 
   return (
-    <section id="redes" className="bg-rojo/60 py-16 md:py-24 px-6">
+    <section id="redes" className="bg-rojo/50 py-16 md:py-24 px-6">
       <div className="max-w-5xl mx-auto">
         <span className="font-press-start text-[9px] bg-azul text-white px-3 py-2 tracking-widest">✱ TUS REDES, RESUELTAS</span>
         <h2 className="font-press-start text-maiz text-xl sm:text-3xl md:text-4xl leading-tight mt-5 uppercase" style={{ textShadow: '3px 3px 0 var(--color-negro)' }}>Dilo con<br /><span className="text-crema">tus palabras.</span></h2>
