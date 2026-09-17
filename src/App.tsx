@@ -9,9 +9,14 @@ import PosterMachine from './components/PosterMachine';
 import Pricing from './components/Pricing';
 import FeedbackForm from './components/FeedbackForm';
 import Reveal from './components/Reveal';
+import OwnerPanel from './panel/OwnerPanel';
 
 export default function App() {
   const photoRef = useRef<PhotoTryHandle>(null);
+
+  // Con ?r=<local> es la carta de un restaurante (cliente + panel del dueño).
+  // Sin él, es la landing de venta.
+  if (new URLSearchParams(location.search).get('r')) return <OwnerPanel />;
 
   return (
     <div className="relative w-full bg-slate-950 select-none">
