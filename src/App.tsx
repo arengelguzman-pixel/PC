@@ -10,6 +10,8 @@ import Pricing from './components/Pricing';
 import FeedbackForm from './components/FeedbackForm';
 import Reveal from './components/Reveal';
 import BeforeAfterSection from './components/BeforeAfterSection';
+import MunecoFondo from './components/MunecoFondo';
+import Intersticial from './components/Intersticial';
 import OwnerPanel from './panel/OwnerPanel';
 import Nuevo from './panel/Nuevo';
 
@@ -23,9 +25,11 @@ export default function App() {
   if (new URLSearchParams(location.search).get('r')) return <OwnerPanel />;
 
   return (
-    <div className="relative w-full bg-negro select-none">
+    <div className="relative w-full select-none">
       <MouseTrail />
+      <MunecoFondo />
 
+      <div className="relative z-10">
       <ScrollHero onProbar={() => photoRef.current?.abrir()} />
 
       <Marquee variant="band" />
@@ -53,8 +57,14 @@ export default function App() {
       </section>
 
       <PhotoTry ref={photoRef} />
+
+      <Intersticial frase={'LA MISMA COMIDA.\nOTRA FOTO.'} />
+
       <BeforeAfterSection />
       <MenuSection />
+
+      <Intersticial frase={'SIN APPS.\nSIN DISEÑADOR.'} />
+
       <PosterMachine />
       <Pricing />
 
@@ -63,6 +73,7 @@ export default function App() {
         <p className="text-crema/50 text-sm mt-4">{MARCA.ciudad}<br />{MARCA.eslogan}</p>
         <p className="text-crema/40 text-xs mt-6 max-w-md mx-auto font-mono">Desliza hasta abajo para dejarnos tu contacto — o toca "Contacto" arriba.</p>
       </footer>
+      </div>
 
       <FeedbackForm />
     </div>

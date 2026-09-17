@@ -61,14 +61,14 @@ export const MARQUEE = [
   'TÚ LO MANEJAS', 'SIN APPS', 'SIN DISEÑADOR',
 ];
 
-// Stickers decorativos que siguen al cursor (CDN Figma del spec, sólo adorno)
-const CDN = 'https://crow-peanut-06457083.figma.site/_components/v2/4c2b061456bbff22b92923348791b501874ded3f';
+// Stickers de comida que siguen al cursor (SVG propios, die-cut brutalista).
 export const TRAIL_STICKERS = [
-  `${CDN}/b77ef81dabfca9ce4a4d1af5d553e17019a0d229.b77ef81d.png`,
-  `${CDN}/9ece3a6bf6c5cecf6c0078d022a171bc93baf9c5.9ece3a6b.png`,
-  `${CDN}/41b9f0bffb2c0b2e1d3fbe26c124ed1378970c35.41b9f0bf.png`,
-  `${CDN}/0edc0785a3e3bf26be7a494886999c4a6f1dc14c.0edc0785.png`,
-  `${CDN}/d12ddf42fe4c8437df4414c883fe60fb77b20cbe.d12ddf42.png`,
+  '/stickers/burger.svg',
+  '/stickers/pollo.svg',
+  '/stickers/papas.svg',
+  '/stickers/fuego.svg',
+  '/stickers/saltena.svg',
+  '/stickers/rico.svg',
 ];
 
 // Comparadores antes/después del hero y de la sección menú
