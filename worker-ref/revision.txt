@@ -1,0 +1,13 @@
+Look at this photograph of food. Answer ONLY with a JSON object, no other text:
+{"empezado": true|false, "envase": true|false, "motivo": "<max 8 words, Spanish>"}
+
+"empezado" = true ONLY if there is clear, unambiguous evidence that someone already
+started eating: a visible bite taken out of an item, a piece cut open and partly gone,
+food smeared across a plate mid-meal, a half-empty plate, or dirty used cutlery resting
+in the food. Deliberate chef's plating, an artistic or abstract presentation, a
+deconstructed dish, a sliced or halved item presented on purpose, a sauce swoosh, or a
+dish that simply looks unusual are all NORMAL - those are false.
+When in doubt, answer false.
+
+"envase" = true if the food is served in a disposable takeaway container (foam, plastic,
+paper, cardboard box). False for plates, bowls, baskets, pans, boards.
