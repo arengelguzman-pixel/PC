@@ -10,12 +10,15 @@ import Pricing from './components/Pricing';
 import FeedbackForm from './components/FeedbackForm';
 import Reveal from './components/Reveal';
 import OwnerPanel from './panel/OwnerPanel';
+import Nuevo from './panel/Nuevo';
 
 export default function App() {
   const photoRef = useRef<PhotoTryHandle>(null);
 
-  // Con ?r=<local> es la carta de un restaurante (cliente + panel del dueño).
-  // Sin él, es la landing de venta.
+  // /nuevo   → pantalla de alta (identificador, clave y QR)
+  // ?r=<local> → carta de un restaurante (cliente + panel del dueño)
+  // resto    → landing de venta
+  if (location.pathname.replace(/\/+$/, '').endsWith('/nuevo')) return <Nuevo />;
   if (new URLSearchParams(location.search).get('r')) return <OwnerPanel />;
 
   return (
