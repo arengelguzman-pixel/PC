@@ -5,7 +5,6 @@ import MouseTrail from './components/MouseTrail';
 import ScrollHero from './components/ScrollHero';
 import PhotoTry, { type PhotoTryHandle } from './components/PhotoTry';
 import PosterMachine from './components/PosterMachine';
-import Pricing from './components/Pricing';
 import FeedbackForm from './components/FeedbackForm';
 import Reveal from './components/Reveal';
 import BeforeAfterSection from './components/BeforeAfterSection';
@@ -65,7 +64,16 @@ export default function App() {
 
       <BeforeAfterSection />
       <PosterMachine />
-      <Pricing />
+
+      {/* CTA al menú (demostración gratuita) */}
+      <section className="bg-negro/45 py-16 md:py-20 px-6 text-center">
+        <Reveal className="max-w-2xl mx-auto">
+          <span className="font-press-start text-[9px] bg-lima text-negro px-3 py-2 tracking-widest">✱ DEMOSTRACIÓN GRATIS</span>
+          <h2 className="font-press-start text-maiz text-xl sm:text-3xl leading-tight mt-5 uppercase" style={{ textShadow: '3px 3px 0 var(--color-rojo)' }}>Pruébalo<br /><span className="text-crema">sin costo.</span></h2>
+          <p className="mt-4 text-crema/85">Arma un pedido desde la mesa y míralo llegar a la cocina en vivo. Gratis, sin compromiso.</p>
+          <a href="/demo" className="inline-block mt-6 font-press-start text-[11px] text-crema bg-rojo border-[3px] border-negro py-4 px-7 shadow-[5px_5px_0_var(--color-maiz)] active:translate-y-1 active:shadow-none transition-all uppercase tracking-widest">Probar el menú en vivo ▸</a>
+        </Reveal>
+      </section>
 
       <footer id="contacto" className="bg-negro/60 border-t-4 border-maiz py-16 px-6 text-center">
         <div className="font-press-start text-maiz text-lg">{MARCA.nombre}</div>
