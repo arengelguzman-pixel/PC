@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Estudio IA de Plato Vivo: mejora las fotos de tus platillos y ponles la marca de tu restaurante desde el celular.">
+  <title>Estudio IA · Plato Vivo</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;700;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Pacifico&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estudio.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../" aria-label="Volver a Plato Vivo">
+      <span class="brand-dot"></span>
+      <span>Plato Vivo <em>Estudio</em></span>
+    </a>
+    <button class="status-pill" id="statusPill" type="button">
+      <span class="status-dot"></span><span id="statusText">Conectando…</span>
+    </button>
+  </header>
+
+  <main>
+    <!-- ============ MEJORAR ============ -->
+    <section class="view is-active" id="view-mejorar" aria-labelledby="t-mejorar">
+      <div class="view-head">
+        <h1 id="t-mejorar">Mejora tu platillo</h1>
+        <p>Sube la foto tal cual la tomaste. La IA la deja lista para el menú, delivery o redes.</p>
+      </div>
+
+      <div class="uploader" id="editUploader">
+        <div class="uploader-empty">
+          <div class="uploader-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 7h3l2-3h6l2 3h3v13H4z"/><circle cx="12" cy="13" r="4"/></svg>
+          </div>
+          <p><strong>Toma o sube la foto de tu platillo</strong><br><span>JPG o PNG · se optimiza automáticamente</span></p>
+          <div class="uploader-actions">
+            <label class="btn btn-primary">
+              <input type="file" accept="image/*" capture="environment" data-target="edit" hidden>
+              Cámara
+            </label>
+            <label class="btn btn-ghost">
+              <input type="file" accept="image/*" data-target="edit" hidden>
+              Galería
+            </label>
+          </div>
+        </div>
+        <div class="uploader-preview" hidden>
+          <div class="compare" id="editCompare">
+            <img class="compare-before" id="editBefore" alt="Foto original">
+            <img class="compare-after" id="editAfter" alt="Foto mejorada" hidden>
+            <div class="compare-handle" hidden><span></span></div>
+            <input class="compare-range" type="range" min="0" max="100" value="50" aria-label="Comparar antes y después" hidden>
+            <span class="compare-tag compare-tag-before" hidden>Antes</span>
+            <span class="compare-tag compare-tag-after" hidden>Después</span>
+            <div class="loading" hidden><div class="shimmer"></div><p class="loading-text">Preparando…</p><p class="loading-time">0 s</p></div>
+          </div>
+          <div class="row-actions">
+            <label class="chip">
+              <input type="file" accept="image/*" data-target="edit" hidden>
+              Cambiar foto
+            </label>
+            <button class="chip" type="button" id="quickFixBtn">Ajuste rápido gratis</button>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title">Estilo</h2>
+      <div class="presets" id="editPresets" role="radiogroup" aria-label="Estilo de mejora"></div>
+
+      <h2 class="section-title">Formato</h2>
+      <div class="chips" id="editAspect" role="radiogroup" aria-label="Formato"></div>
+
+      <h2 class="section-title">Indicaciones extra <span class="muted">(opcional)</span></h2>
+      <textarea id="editExtra" rows="2" maxlength="400" placeholder="Ej: quita la servilleta, agrega vapor, fondo de madera oscura…"></textarea>
+
+      <div class="result-actions" id="editResultActions" hidden>
+        <button class="btn btn-ghost" type="button" data-action="download">Descargar</button>
+        <button class="btn btn-ghost" type="button" data-action="share">Compartir</button>
+        <button class="btn btn-accent" type="button" data-action="brand">Ponerle mi marca →</button>
+      </div>
+
+      <div class="cta-bar">
+        <button class="btn btn-primary btn-xl" type="button" id="editGo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+          Mejorar con IA
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ CREAR ============ -->
+    <section class="view" id="view-crear" aria-labelledby="t-crear">
+      <div class="view-head">
+        <h1 id="t-crear">Crear desde cero</h1>
+        <p>Describe el platillo o la escena y la IA la genera. Ideal para promociones, fondos y contenido.</p>
+      </div>
+
+      <div class="result-card" id="createResult" hidden>
+        <img id="createImg" alt="Imagen generada">
+        <div class="loading" hidden><div class="shimmer"></div><p class="loading-text">Preparando…</p><p class="loading-time">0 s</p></div>
+      </div>
+      <div class="result-actions" id="createResultActions" hidden>
+        <button class="btn btn-ghost" type="button" data-action="download">Descargar</button>
+        <button class="btn btn-ghost" type="button" data-action="share">Compartir</button>
+        <button class="btn btn-accent" type="button" data-action="brand">Ponerle mi marca →</button>
+      </div>
+
+      <h2 class="section-title">Ideas rápidas</h2>
+      <div class="presets" id="createPresets"></div>
+
+      <h2 class="section-title">Tu idea</h2>
+      <textarea id="createPrompt" rows="4" maxlength="1200" placeholder="Ej: tacos al pastor con piña, sobre tabla de madera, luz cálida de atardecer, vista cenital"></textarea>
+
+      <h2 class="section-title">Formato</h2>
+      <div class="chips" id="createAspect" role="radiogroup" aria-label="Formato"></div>
+
+      <div class="cta-bar">
+        <button class="btn btn-primary btn-xl" type="button" id="createGo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+          Generar imagen
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ MARCA ============ -->
+    <section class="view" id="view-marca" aria-labelledby="t-marca">
+      <div class="view-head">
+        <h1 id="t-marca">Texto y marca</h1>
+        <p>Agrega el nombre, logo, precio y colores de tu restaurante. Listo para Instagram, Facebook o WhatsApp.</p>
+      </div>
+
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="brandCanvas" width="1080" height="1350" aria-label="Vista previa del diseño"></canvas>
+        <div class="canvas-empty" id="canvasEmpty">
+          <p>Elige una foto para empezar</p>
+          <div class="uploader-actions">
+            <button class="btn btn-primary" type="button" id="pickFromGallery">De mi galería</button>
+            <label class="btn btn-ghost">
+              <input type="file" accept="image/*" data-target="brand" hidden>
+              Subir foto
+            </label>
+          </div>
+        </div>
+        <div class="loading" hidden><div class="shimmer"></div><p class="loading-text">Preparando…</p><p class="loading-time">0 s</p></div>
+      </div>
+      <div class="row-actions">
+        <button class="chip" type="button" id="changeBrandImg">Cambiar foto</button>
+        <label class="chip">
+          <input type="file" accept="image/*" data-target="brand" hidden>
+          Subir otra
+        </label>
+      </div>
+
+      <h2 class="section-title">Plantilla</h2>
+      <div class="presets presets-sm" id="brandTemplates" role="radiogroup" aria-label="Plantilla"></div>
+
+      <h2 class="section-title">Formato</h2>
+      <div class="chips" id="brandFormat" role="radiogroup" aria-label="Formato"></div>
+
+      <h2 class="section-title">Textos</h2>
+      <div class="fields">
+        <label class="field"><span>Título</span><input id="txtTitle" maxlength="60" placeholder="Hamburguesa Doble Smash"></label>
+        <label class="field"><span>Descripción</span><input id="txtSubtitle" maxlength="90" placeholder="Con queso cheddar y papas incluidas"></label>
+        <div class="field-row">
+          <label class="field"><span>Precio</span><input id="txtPrice" maxlength="16" placeholder="$149"></label>
+          <label class="field"><span>Etiqueta</span><input id="txtBadge" maxlength="18" placeholder="NUEVO"></label>
+        </div>
+        <label class="field"><span>Llamado a la acción</span><input id="txtCta" maxlength="40" placeholder="Pide ya por WhatsApp"></label>
+      </div>
+
+      <details class="kit" id="brandKit" open>
+        <summary>Kit de marca <span class="muted">(se guarda en este celular)</span></summary>
+        <div class="fields">
+          <label class="field"><span>Nombre del restaurante</span><input id="kitName" maxlength="40" placeholder="La Cocina de Chris"></label>
+          <div class="logo-field">
+            <div class="logo-preview" id="logoPreview"><span>Logo</span></div>
+            <div class="logo-actions">
+              <label class="btn btn-ghost btn-sm">
+                <input type="file" accept="image/*" id="logoInput" hidden>
+                Subir logo
+              </label>
+              <button class="btn btn-ghost btn-sm" type="button" id="logoRemove">Quitar</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <label class="field field-color"><span>Color principal</span><input type="color" id="kitColor1" value="#c6ff3d"></label>
+            <label class="field field-color"><span>Color de texto</span><input type="color" id="kitColor2" value="#ffffff"></label>
+          </div>
+          <label class="field"><span>Tipografía</span>
+            <select id="kitFont">
+              <option value="Poppins">Moderna (Poppins)</option>
+              <option value="Playfair Display">Elegante (Playfair)</option>
+              <option value="Bebas Neue">Impacto (Bebas Neue)</option>
+              <option value="Pacifico">Casual (Pacifico)</option>
+            </select>
+          </label>
+          <div class="field-row">
+            <label class="field"><span>Instagram / TikTok</span><input id="kitHandle" maxlength="30" placeholder="@tu_restaurante"></label>
+            <label class="field"><span>WhatsApp</span><input id="kitPhone" maxlength="20" inputmode="tel" placeholder="55 1234 5678"></label>
+          </div>
+        </div>
+      </details>
+
+      <button class="btn btn-ghost btn-block" type="button" id="aiPosterBtn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+        Diseño completo con IA (beta)
+      </button>
+
+      <div class="cta-bar cta-bar-split">
+        <button class="btn btn-ghost btn-xl" type="button" id="brandShare">Compartir</button>
+        <button class="btn btn-primary btn-xl" type="button" id="brandDownload">Descargar</button>
+      </div>
+    </section>
+
+    <!-- ============ GALERÍA ============ -->
+    <section class="view" id="view-galeria" aria-labelledby="t-galeria">
+      <div class="view-head">
+        <h1 id="t-galeria">Mis imágenes</h1>
+        <p>Todo lo que generes se guarda aquí, en este celular.</p>
+      </div>
+      <div class="grid" id="galleryGrid"></div>
+      <div class="empty" id="galleryEmpty">
+        <p>Aún no tienes imágenes.<br>Empieza mejorando la foto de un platillo.</p>
+        <button class="btn btn-primary" type="button" data-goto="mejorar">Mejorar una foto</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="Secciones del estudio">
+    <button class="tab is-active" type="button" data-view="mejorar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+      <span>Mejorar</span>
+    </button>
+    <button class="tab" type="button" data-view="crear">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>
+      <span>Crear</span>
+    </button>
+    <button class="tab" type="button" data-view="marca">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M6 16l6-12 6 12M8.5 11h7"/></svg>
+      <span>Marca</span>
+    </button>
+    <button class="tab" type="button" data-view="galeria">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>Galería</span>
+    </button>
+  </nav>
+
+  <!-- Hoja inferior reutilizable -->
+  <div class="sheet" id="sheet" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="sheet-grab" data-close></div>
+      <h3 id="sheetTitle"></h3>
+      <div class="sheet-body" id="sheetBody"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="estudio.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "plato-vivo",
+  "private": true,
+  "type": "module",
+  "description": "Landing de Plato Vivo con Estudio IA para fotos de platillos",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
