@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { PLATOS, IMG, type Plato } from '../config';
+import { PLATOS, IMG, GLB, type Plato } from '../config';
 import { LOOKS, TPLS, paletaVars, type LookKey, type TplKey } from '../lib/carta';
+import Plate3D from '../components/Plate3D';
 
 // Menú con 2 pestañas:
 //  · COCINA/ADMIN → ve los pedidos, decide platos disponibles, gestiona mesas,
@@ -232,6 +233,7 @@ function Cliente({ negocio, look, tpl, agotado, lineas, total, mesaCliente, setM
 }) {
   const vars = paletaVars(look, '');
   const grid = tpl === 'mosaico' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3';
+  const [ver3d, setVer3d] = useState<{ url: string; label: string } | null>(null);
   return (
     <div style={{ ...vars, background: 'var(--fondo)', color: 'var(--cunape)' }} className="min-h-[calc(100vh-56px)]">
       <div className="max-w-lg mx-auto px-5 py-6 pb-28">
@@ -260,6 +262,7 @@ function Cliente({ negocio, look, tpl, agotado, lineas, total, mesaCliente, setM
                 <div key={p.id} className="flex items-baseline gap-2 py-2" style={{ borderBottom: '1px dotted var(--ceniza)', opacity: no ? 0.45 : 1 }}>
                   <b className="font-medium" style={{ fontFamily: 'var(--font-body)' }}>{p.n}</b>
                   <span className="flex-1 border-b border-dotted self-end mb-1" style={{ borderColor: 'var(--tenue)' }} />
+                  {p.glb && <button onClick={() => setVer3d({ url: GLB[p.glb!], label: p.n })} className="text-[11px] font-bold px-2 py-1 rounded-full mr-1" style={{ border: '1px solid var(--tenue)', color: 'var(--cunape)' }}>◈ 3D</button>}
                   {no ? <span className="text-xs font-bold" style={{ color: 'var(--brasa)' }}>AGOTADO</span>
                       : <><span className="font-mono font-bold" style={{ color: 'var(--maiz)' }}>Bs {p.p}</span>
                           <button onClick={() => add(p)} className="ml-2 w-7 h-7 rounded-full text-lg leading-none" style={{ background: 'var(--brasa)', color: '#fff' }}>+</button></>}
@@ -278,9 +281,12 @@ function Cliente({ negocio, look, tpl, agotado, lineas, total, mesaCliente, setM
                 <div className="p-3 flex-1 min-w-0">
                   <b className="block font-medium leading-tight" style={{ fontFamily: 'var(--font-body)' }}>{p.n}</b>
                   {!lista && <span className="block text-xs mt-1" style={{ color: 'var(--txt2)' }}>{p.d}</span>}
-                  <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center justify-between gap-2 mt-2">
                     <span className="font-mono font-bold" style={{ color: 'var(--maiz)' }}>{no ? '—' : `Bs ${p.p}`}</span>
-                    {!no && <button onClick={() => add(p)} className="font-bold text-sm px-3 py-1.5 rounded-full" style={{ background: 'var(--brasa)', color: '#fff' }}>Agregar +</button>}
+                    <div className="flex items-center gap-2">
+                      {p.glb && <button onClick={() => setVer3d({ url: GLB[p.glb!], label: p.n })} className="text-xs font-bold px-2.5 py-1.5 rounded-full" style={{ border: '1px solid var(--tenue)', color: 'var(--cunape)' }}>◈ 3D</button>}
+                      {!no && <button onClick={() => add(p)} className="font-bold text-sm px-3 py-1.5 rounded-full" style={{ background: 'var(--brasa)', color: '#fff' }}>Agregar +</button>}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -303,6 +309,20 @@ function Cliente({ negocio, look, tpl, agotado, lineas, total, mesaCliente, setM
               ))}
             </div>
             <button onClick={hacerPedido} className="mt-2 w-full py-4 rounded-xl font-bold text-lg" style={{ background: 'var(--brasa)', color: '#fff' }}>Hacer mi pedido · Bs {total}</button>
+          </div>
+        </div>
+      )}
+
+      {/* visor 3D del plato (girar con el dedo) */}
+      {ver3d && (
+        <div className="fixed inset-0 z-[80] bg-black/85 grid place-items-center p-5" onClick={() => setVer3d(null)}>
+          <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-press-start text-[10px] text-lima">{ver3d.label}</span>
+              <button onClick={() => setVer3d(null)} className="font-press-start text-[12px] text-crema/70 hover:text-brasa">[X]</button>
+            </div>
+            <Plate3D key={ver3d.url} glbUrl={ver3d.url} label={ver3d.label.toUpperCase().replace(/\s+/g, '_')} />
+            <p className="text-center text-crema/60 text-xs mt-2 font-mono">arrástralo para girar · pellizca para acercar</p>
           </div>
         </div>
       )}
