@@ -4,25 +4,27 @@ import Marquee from './components/Marquee';
 import MouseTrail from './components/MouseTrail';
 import ScrollHero from './components/ScrollHero';
 import PhotoTry, { type PhotoTryHandle } from './components/PhotoTry';
-import MenuSection from './components/MenuSection';
 import PosterMachine from './components/PosterMachine';
 import Pricing from './components/Pricing';
 import FeedbackForm from './components/FeedbackForm';
 import Reveal from './components/Reveal';
 import BeforeAfterSection from './components/BeforeAfterSection';
-import SimulacionPedidos from './components/SimulacionPedidos';
 import MunecoFondo from './components/MunecoFondo';
 import Intersticial from './components/Intersticial';
 import OwnerPanel from './panel/OwnerPanel';
 import Nuevo from './panel/Nuevo';
+import DemoMenu from './panel/DemoMenu';
 
 export default function App() {
   const photoRef = useRef<PhotoTryHandle>(null);
+  const ruta = location.pathname.replace(/\/+$/, '');
 
+  // /demo    → el menú (negocio + logo + armado de pedido + cocina)
   // /nuevo   → pantalla de alta (identificador, clave y QR)
   // ?r=<local> → carta de un restaurante (cliente + panel del dueño)
   // resto    → landing de venta
-  if (location.pathname.replace(/\/+$/, '').endsWith('/nuevo')) return <Nuevo />;
+  if (ruta.endsWith('/demo')) return <DemoMenu />;
+  if (ruta.endsWith('/nuevo')) return <Nuevo />;
   if (new URLSearchParams(location.search).get('r')) return <OwnerPanel />;
 
   return (
@@ -41,11 +43,11 @@ export default function App() {
           <h2 className="font-press-start text-maiz text-xl sm:text-3xl md:text-4xl leading-tight uppercase">Hacemos<br /><span className="text-crema">dos cosas.</span></h2>
           <p className="mt-4 text-crema/80 max-w-lg">Nada más. Pero esas dos las hacemos bien, y son las dos que te faltan.</p>
           <div className="grid md:grid-cols-2 gap-4 mt-8">
-            <a href="#menu" className="block bg-rojo border-[3px] border-negro p-6 shadow-[6px_6px_0_var(--color-maiz)] active:translate-x-1 active:translate-y-1 transition-transform">
+            <a href="/demo" className="block bg-rojo border-[3px] border-negro p-6 shadow-[6px_6px_0_var(--color-maiz)] active:translate-x-1 active:translate-y-1 transition-transform">
               <span className="font-press-start text-4xl text-maiz leading-none block">01</span>
               <h3 className="font-press-start text-sm text-crema mt-4 leading-snug uppercase">Tu carta se vuelve una experiencia</h3>
-              <p className="text-sm text-crema/90 mt-3">El cliente escanea el QR de la mesa y ve tus platos en 3D. Los gira con el dedo antes de pedir.</p>
-              <span className="font-press-start text-[9px] text-maiz mt-4 inline-block tracking-wider">Ver cómo ▸</span>
+              <p className="text-sm text-crema/90 mt-3">El cliente pide desde la mesa y a la cocina le llega la comanda al instante. Pruébalo en vivo.</p>
+              <span className="font-press-start text-[9px] text-maiz mt-4 inline-block tracking-wider">Probar el menú ▸</span>
             </a>
             <a href="#redes" className="block bg-maiz text-negro border-[3px] border-negro p-6 shadow-[6px_6px_0_var(--color-azul)] active:translate-x-1 active:translate-y-1 transition-transform">
               <span className="font-press-start text-4xl text-rojo leading-none block">02</span>
@@ -62,11 +64,6 @@ export default function App() {
       <Intersticial frase={'LA MISMA COMIDA.\nOTRA FOTO.'} />
 
       <BeforeAfterSection />
-      <MenuSection />
-      <SimulacionPedidos />
-
-      <Intersticial frase={'SIN APPS.\nSIN DISEÑADOR.'} />
-
       <PosterMachine />
       <Pricing />
 

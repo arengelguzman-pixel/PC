@@ -40,7 +40,7 @@ export default function ScrollHero({ onProbar }: { onProbar: () => void }) {
   const foco = alpha > 0 ? Math.max(0, 1 - Math.abs(manifY - 8) / 95) : 0;
 
   return (
-    <div ref={wrap} className="relative h-[280vh] md:h-[420vh]">
+    <div ref={wrap} className="relative h-[200vh] md:h-[300vh]">
       <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
         {/* Degradados de legibilidad sobre el muñeco (fondo fijo detrás) */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/20 to-black/80" />
@@ -52,7 +52,7 @@ export default function ScrollHero({ onProbar }: { onProbar: () => void }) {
         {/* Navegación */}
         <nav className="absolute top-8 right-6 md:right-14 z-50 flex gap-5 md:gap-9 font-press-start text-[9px] sm:text-[11px] text-white">
           <a href="#probar" className="hover:text-maiz transition-colors">Probar</a>
-          <a href="#menu" className="hover:text-maiz transition-colors">Menú</a>
+          <a href="/demo" className="hover:text-maiz transition-colors">Menú</a>
           <a href="#redes" className="hover:text-maiz transition-colors">Redes</a>
           <a href="#contacto" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); }} className="hover:text-maiz transition-colors">Contacto</a>
           <a href={ESTUDIO_URL} target="_blank" rel="noopener noreferrer" className="text-carbon bg-maiz px-2.5 py-1.5 hover:bg-lima transition-colors">Estudio IA ▸</a>
