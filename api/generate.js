@@ -4,9 +4,10 @@
 // Variables de entorno:
 //   HF_KEY                  credenciales de Higgsfield Cloud en formato "API_KEY:API_SECRET"
 //                           (o bien HF_API_KEY y HF_API_SECRET por separado)
-//   HIGGSFIELD_EDIT_MODEL   modelo para mejorar fotos (por defecto bytedance/seedream/v4/edit)
-//   HIGGSFIELD_T2I_MODEL    modelo para crear desde texto (por defecto bytedance/seedream/v4/text-to-image)
-//   HIGGSFIELD_RESOLUTION   1K, 2K o 4K (por defecto 2K)
+//   HIGGSFIELD_EDIT_MODEL   modelo para mejorar fotos (por defecto alibaba/qwen-image-3/edit)
+//   HIGGSFIELD_T2I_MODEL    modelo para crear desde texto (por defecto alibaba/qwen-image-3/text-to-image)
+//   HIGGSFIELD_RESOLUTION   1k o 2k (por defecto 2k)
+//   (la lista de modelos de tu cuenta sale de GET https://api.higgsfield.ai/models)
 //   STUDIO_PASSWORD         opcional: código de acceso para que nadie más gaste tus créditos
 //
 // Flujo (la API de Higgsfield es asíncrona):
@@ -15,10 +16,12 @@
 //   GET  /api/generate?id=...&file=1   → la imagen terminada
 
 const BASE_URL = 'https://api.higgsfield.ai';
-const EDIT_MODEL = process.env.HIGGSFIELD_EDIT_MODEL || 'bytedance/seedream/v4/edit';
-const T2I_MODEL = process.env.HIGGSFIELD_T2I_MODEL || 'bytedance/seedream/v4/text-to-image';
-const RESOLUTION = process.env.HIGGSFIELD_RESOLUTION || '2K';
-const ASPECTS = new Set(['1:1', '4:5', '9:16', '16:9']);
+const EDIT_MODEL = process.env.HIGGSFIELD_EDIT_MODEL || 'alibaba/qwen-image-3/edit';
+const T2I_MODEL = process.env.HIGGSFIELD_T2I_MODEL || 'alibaba/qwen-image-3/text-to-image';
+const RESOLUTION = (process.env.HIGGSFIELD_RESOLUTION || '2k').toLowerCase();
+// Formatos del estudio → formatos que aceptan los modelos de Higgsfield (no existe 4:5; se usa 3:4
+// y el editor de marca recorta al tamaño final).
+const ASPECTS = { '1:1': '1:1', '4:5': '3:4', '9:16': '9:16', '16:9': '16:9' };
 const ID_RE = /^[a-zA-Z0-9-]{8,80}$/;
 const MAX_PROMPT = 2000;
 
@@ -87,10 +90,7 @@ async function submit({ mode, prompt, aspect, image }) {
   let model = T2I_MODEL;
   if (mode === 'edit') {
     model = EDIT_MODEL;
-    const url = await uploadImage(image);
-    // Los modelos de edición usan uno u otro nombre según el proveedor; se envían ambos.
-    args.image_url = url;
-    args.image_urls = [url];
+    args.image_urls = [await uploadImage(image)];
   }
   const job = await hf(model, { method: 'POST', body: JSON.stringify(args) });
   if (!job.request_id) throw new HiggsfieldError('Higgsfield no devolvió un id de trabajo.', 502);
@@ -155,7 +155,7 @@ export default async function handler(req, res) {
     const requestId = await submit({
       mode: mode === 'edit' ? 'edit' : 'generate',
       prompt: prompt.trim().slice(0, MAX_PROMPT),
-      aspect: ASPECTS.has(aspect) ? aspect : '1:1',
+      aspect: ASPECTS[aspect] || '1:1',
       image,
     });
     return res.status(202).json({ id: requestId });

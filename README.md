@@ -51,11 +51,11 @@ Puedes usar cualquier modelo de imagen del catálogo de Higgsfield Cloud sin toc
 
 | Variable | Para qué | Por defecto |
 |---|---|---|
-| `HIGGSFIELD_EDIT_MODEL` | Mejorar foto y Diseño con IA (recibe tu foto) | `bytedance/seedream/v4/edit` |
-| `HIGGSFIELD_T2I_MODEL` | Crear desde texto | `bytedance/seedream/v4/text-to-image` |
-| `HIGGSFIELD_RESOLUTION` | Calidad: `1K`, `2K` o `4K` | `2K` |
+| `HIGGSFIELD_EDIT_MODEL` | Mejorar foto y Diseño con IA (recibe tu foto) | `alibaba/qwen-image-3/edit` |
+| `HIGGSFIELD_T2I_MODEL` | Crear desde texto | `alibaba/qwen-image-3/text-to-image` |
+| `HIGGSFIELD_RESOLUTION` | Calidad: `1k` o `2k` | `2k` |
 
-Copia el id exacto del modelo tal como aparece en el catálogo de la API.
+La lista de modelos disponibles en tu cuenta sale de `GET https://api.higgsfield.ai/models` (con tu `HF_KEY`). Otros modelos de imagen que acepta tu foto: `marketing-studio/image`, `ideogram/v4.0`, `xai/grok-imagine-image-2.0`. Ninguno acepta 4:5, así que el estudio pide 3:4 y el editor de Marca recorta.
 
 ## Integrarlo en tu landing actual
 
