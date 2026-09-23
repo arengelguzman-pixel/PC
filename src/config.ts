@@ -1,6 +1,10 @@
 // Fuente de verdad del contenido de PLATO VIVO.
 // Copy, menú, comparadores y datos de la máquina de afiches viven aquí.
 
+// Estudio IA (servicio externo de mejora de fotos, alojado en Vercel).
+export const ESTUDIO_URL = 'https://plato-vivo.vercel.app/estudio/';
+export const ESTUDIO_MEJORAR_URL = 'https://plato-vivo.vercel.app/estudio/?vista=mejorar';
+
 export const MARCA = {
   nombre: 'PLATO VIVO',
   ciudad: 'Montero · Santa Cruz · Bolivia',

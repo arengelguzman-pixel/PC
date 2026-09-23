@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { HERO_FRASES, MANIFIESTO, MARCA } from '../config';
+import { ESTUDIO_URL, HERO_FRASES, MANIFIESTO, MARCA } from '../config';
 import Marquee from './Marquee';
 
 // Título que se "desescribe" con el scroll (typewriter del spec).
@@ -55,6 +55,7 @@ export default function ScrollHero({ onProbar }: { onProbar: () => void }) {
           <a href="#menu" className="hover:text-maiz transition-colors">Menú</a>
           <a href="#redes" className="hover:text-maiz transition-colors">Redes</a>
           <a href="#contacto" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); }} className="hover:text-maiz transition-colors">Contacto</a>
+          <a href={ESTUDIO_URL} target="_blank" rel="noopener noreferrer" className="text-carbon bg-maiz px-2.5 py-1.5 hover:bg-lima transition-colors">Estudio IA ▸</a>
         </nav>
 
         {/* Título que se desescribe */}

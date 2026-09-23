@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PLATOS, IMG, type Plato } from '../config';
+import { PLATOS, IMG, ESTUDIO_URL, ESTUDIO_MEJORAR_URL, type Plato } from '../config';
 import {
   LOOKS, TPLS, COLORES, type LookKey, type TplKey,
   cartaGet, cartaPost, recortarLogo, paletaVars, leerLocal, leerClave, type DatosCarta,
@@ -108,8 +108,9 @@ export default function OwnerPanel() {
   return (
     <div className="min-h-screen bg-slate-950 text-crema pb-40">
       {/* barra superior */}
-      <header className="sticky top-0 z-40 bg-carbon border-b-4 border-lima px-4 py-3 flex items-center justify-between gap-3">
+      <header className="sticky top-0 z-40 bg-carbon border-b-4 border-lima px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
         <span className="font-press-start text-[11px] text-lima">PLATO VIVO</span>
+        <a href={ESTUDIO_URL} target="_blank" rel="noopener noreferrer" className="font-press-start text-[8px] text-carbon bg-maiz px-2.5 py-2 tracking-wider hover:bg-lima transition-colors order-3 sm:order-none">Estudio IA ▸</a>
         <div className="flex gap-1.5">
           <button onClick={() => setTab('cli')} className={`font-press-start text-[8px] px-3 py-2.5 border-2 tracking-wider ${tab === 'cli' ? 'bg-lima text-carbon border-lima' : 'text-crema/70 border-crema/25'}`}>Lo que ve tu cliente</button>
           {!soloCliente && <button onClick={() => setTab('due')} className={`font-press-start text-[8px] px-3 py-2.5 border-2 tracking-wider ${tab === 'due' ? 'bg-lima text-carbon border-lima' : 'text-crema/70 border-crema/25'}`}>Lo que ves tú</button>}
@@ -124,6 +125,12 @@ export default function OwnerPanel() {
             <p className="font-press-start text-[9px] text-lima tracking-widest uppercase mb-3">Así se ve tu carta</p>
             <div className="border-[3px] border-lima max-h-[46vh] overflow-y-auto">
               <ClientePreview marca={marca} look={look} tpl={tpl} platos={platos} est={est} compacto />
+            </div>
+
+            {/* Estudio IA */}
+            <div className="mt-5 flex flex-wrap gap-2.5">
+              <a href={ESTUDIO_MEJORAR_URL} target="_blank" rel="noopener noreferrer" className="font-press-start text-[9px] text-crema bg-rojo border-[3px] border-negro py-3.5 px-5 shadow-[4px_4px_0_var(--color-maiz)] active:translate-y-0.5 active:shadow-none transition-all uppercase tracking-wider">📷 Mejorar la foto de mi platillo ▸</a>
+              <a href={ESTUDIO_URL} target="_blank" rel="noopener noreferrer" className="font-press-start text-[9px] text-carbon bg-maiz border-[3px] border-negro py-3.5 px-5 hover:bg-lima transition-colors uppercase tracking-wider">Estudio IA ▸</a>
             </div>
 
             {/* Marca */}
