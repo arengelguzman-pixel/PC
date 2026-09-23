@@ -45,6 +45,10 @@ vercel.json                ← configuración para Vercel
 2. Envía el trabajo al modelo (`POST /{modelo}`) con el prompt, `aspect_ratio` y `resolution`.
 3. El celular consulta `GET /requests/{id}/status` cada 2.5 s hasta que dice `completed` y descarga la imagen.
 
+### Limpieza automática (sin escribir nada)
+
+El servidor agrega siempre, a cada imagen, instrucciones para **quitar todo lo que ensucia la foto** (servilletas, tickets, celulares, manos, cubiertos sueltos, botellas, migajas, manchas, textos y fondos desordenados) y dejar **al platillo como único protagonista**, centrado y con espacio libre alrededor para el texto y la marca. Están en `CLEAN_EDIT` y `CLEAN_GENERATE` dentro de `api/generate.js`.
+
 ### Cambiar de modelo
 
 Puedes usar cualquier modelo de imagen del catálogo de Higgsfield Cloud sin tocar código, con estas variables:
@@ -52,7 +56,7 @@ Puedes usar cualquier modelo de imagen del catálogo de Higgsfield Cloud sin toc
 | Variable | Para qué | Por defecto |
 |---|---|---|
 | `HIGGSFIELD_EDIT_MODEL` | Mejorar foto y Diseño con IA (recibe tu foto) | `alibaba/qwen-image-3/edit` |
-| `HIGGSFIELD_T2I_MODEL` | Crear desde texto | `alibaba/qwen-image-3/text-to-image` |
+| `HIGGSFIELD_T2I_MODEL` | Crear desde texto | `z-image/turbo` (rápido y económico; alternativa: `alibaba/qwen-image-3/text-to-image`) |
 | `HIGGSFIELD_RESOLUTION` | Calidad: `1k` o `2k` | `2k` |
 
 La lista de modelos disponibles en tu cuenta sale de `GET https://api.higgsfield.ai/models` (con tu `HF_KEY`). Otros modelos de imagen que acepta tu foto: `marketing-studio/image`, `ideogram/v4.0`, `xai/grok-imagine-image-2.0`. Ninguno acepta 4:5, así que el estudio pide 3:4 y el editor de Marca recorta.

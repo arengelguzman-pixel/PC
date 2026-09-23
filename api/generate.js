@@ -5,7 +5,7 @@
 //   HF_KEY                  credenciales de Higgsfield Cloud en formato "API_KEY:API_SECRET"
 //                           (o bien HF_API_KEY y HF_API_SECRET por separado)
 //   HIGGSFIELD_EDIT_MODEL   modelo para mejorar fotos (por defecto alibaba/qwen-image-3/edit)
-//   HIGGSFIELD_T2I_MODEL    modelo para crear desde texto (por defecto alibaba/qwen-image-3/text-to-image)
+//   HIGGSFIELD_T2I_MODEL    modelo para crear desde texto (por defecto z-image/turbo)
 //   HIGGSFIELD_RESOLUTION   1k o 2k (por defecto 2k)
 //   (la lista de modelos de tu cuenta sale de GET https://api.higgsfield.ai/models)
 //   STUDIO_PASSWORD         opcional: código de acceso para que nadie más gaste tus créditos
@@ -17,13 +17,28 @@
 
 const BASE_URL = 'https://api.higgsfield.ai';
 const EDIT_MODEL = process.env.HIGGSFIELD_EDIT_MODEL || 'alibaba/qwen-image-3/edit';
-const T2I_MODEL = process.env.HIGGSFIELD_T2I_MODEL || 'alibaba/qwen-image-3/text-to-image';
+const T2I_MODEL = process.env.HIGGSFIELD_T2I_MODEL || 'z-image/turbo';
 const RESOLUTION = (process.env.HIGGSFIELD_RESOLUTION || '2k').toLowerCase();
 // Formatos del estudio → formatos que aceptan los modelos de Higgsfield (no existe 4:5; se usa 3:4
 // y el editor de marca recorta al tamaño final).
 const ASPECTS = { '1:1': '1:1', '4:5': '3:4', '9:16': '9:16', '16:9': '16:9' };
 const ID_RE = /^[a-zA-Z0-9-]{8,80}$/;
 const MAX_PROMPT = 2000;
+
+// Instrucciones que se agregan SIEMPRE, sin que el usuario escriba nada: quitar todo lo que
+// ensucie la foto y dejar al platillo como protagonista, con aire para el texto y la marca.
+const CLEAN_EDIT =
+  'First clean up the photo: remove everything that is not the dish or its plate — napkins, paper, ' +
+  'receipts, menus, phones, keys, wallets, hands, people, unused cutlery, bottles, cans, glasses, extra ' +
+  'plates, packaging, crumbs, spills, stains, sauce smudges on the plate rim, printed text, logos and any ' +
+  'cluttered or distracting background. Replace the background with a simple, clean surface softly out ' +
+  'of focus that suits the cuisine. The dish is the only hero: centered, sharp, well lit, filling about ' +
+  'two thirds of the frame, with calm empty space around it for text and branding. Never change the food ' +
+  'itself. Then: ';
+const CLEAN_GENERATE =
+  ' Minimal, uncluttered composition: the dish is the single hero, centered and in sharp focus, on a ' +
+  'simple clean background with no extra objects, no people, no hands, no text and no logos, leaving calm ' +
+  'empty space around it for text and branding.';
 
 function credentials() {
   if (process.env.HF_KEY) return process.env.HF_KEY.trim();
@@ -86,10 +101,11 @@ async function uploadImage(dataUri) {
 }
 
 async function submit({ mode, prompt, aspect, image }) {
-  const args = { prompt, aspect_ratio: aspect, resolution: RESOLUTION };
+  const args = { prompt: prompt + CLEAN_GENERATE, aspect_ratio: aspect, resolution: RESOLUTION };
   let model = T2I_MODEL;
   if (mode === 'edit') {
     model = EDIT_MODEL;
+    args.prompt = CLEAN_EDIT + prompt;
     args.image_urls = [await uploadImage(image)];
   }
   const job = await hf(model, { method: 'POST', body: JSON.stringify(args) });
