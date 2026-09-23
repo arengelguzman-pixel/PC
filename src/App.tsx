@@ -10,6 +10,7 @@ import Pricing from './components/Pricing';
 import FeedbackForm from './components/FeedbackForm';
 import Reveal from './components/Reveal';
 import BeforeAfterSection from './components/BeforeAfterSection';
+import SimulacionPedidos from './components/SimulacionPedidos';
 import MunecoFondo from './components/MunecoFondo';
 import Intersticial from './components/Intersticial';
 import OwnerPanel from './panel/OwnerPanel';
@@ -62,6 +63,7 @@ export default function App() {
 
       <BeforeAfterSection />
       <MenuSection />
+      <SimulacionPedidos />
 
       <Intersticial frase={'SIN APPS.\nSIN DISEÑADOR.'} />
 

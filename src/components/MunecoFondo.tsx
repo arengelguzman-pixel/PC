@@ -38,6 +38,16 @@ export default function MunecoFondo() {
     });
 
     // Solo opacidad por scroll (el video ya reproduce solo): cero seeks, fluido.
+    // Además pausamos el video que NO se ve: decodificar los dos a la vez era
+    // lo que trababa. Solo reproducen los dos durante el breve crossfade.
+    let modo = ''; // 'a' | 'b' | 'both'
+    const aplicarModo = (m: string) => {
+      if (m === modo) return;
+      modo = m;
+      if (m === 'a') { a.play().catch(() => {}); b.pause(); }
+      else if (m === 'b') { b.play().catch(() => {}); a.pause(); }
+      else { a.play().catch(() => {}); b.play().catch(() => {}); }
+    };
     const loop = () => {
       if (!vivo) return;
       raf = requestAnimationFrame(loop);
@@ -45,15 +55,16 @@ export default function MunecoFondo() {
       const prog = max > 0 ? Math.max(0, Math.min(1, window.scrollY / max)) : 0;
       a.style.opacity = prog > 0.5 ? '0' : '1';
       b.style.opacity = String(prog < 0.45 ? 0 : prog > 0.5 ? 1 : (prog - 0.45) / 0.05);
+      aplicarModo(prog > 0.44 && prog < 0.51 ? 'both' : prog >= 0.51 ? 'b' : 'a');
     };
     loop();
     return () => { vivo = false; if (raf) cancelAnimationFrame(raf); off1(); off2(); };
   }, []);
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-negro" style={{ zIndex: 0 }}>
-      <video ref={v1} muted playsInline loop preload="auto" crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={{ opacity: 1 }} />
-      <video ref={v2} muted playsInline loop preload="auto" crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={{ opacity: 0 }} />
+    <div className="fixed inset-0 overflow-hidden bg-negro" style={{ zIndex: 0, transform: 'translateZ(0)', contain: 'strict' }}>
+      <video ref={v1} muted playsInline loop preload="auto" crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={{ opacity: 1, willChange: 'opacity' }} />
+      <video ref={v2} muted playsInline loop preload="auto" crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={{ opacity: 0, willChange: 'opacity' }} />
     </div>
   );
 }

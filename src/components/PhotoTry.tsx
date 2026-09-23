@@ -1,5 +1,6 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { FALLOS, mejorar, pareceComida, recorte, type Aviso } from '../lib/api';
+import { ESTUDIO_MEJORAR_URL } from '../config';
 
 export type PhotoTryHandle = { abrir: () => void };
 
@@ -130,6 +131,12 @@ const PhotoTry = forwardRef<PhotoTryHandle>(function PhotoTry(_props, ref) {
           📷 Elegir una foto ▸
         </button>
         <p className="text-center text-sm text-crema/50 mt-3">Se usa solo para arreglarla. No la guardamos ni la publicamos.</p>
+
+        <div className="mt-4 border-2 border-dashed border-crema/25 p-4 text-center">
+          <p className="font-press-start text-[8px] text-maiz tracking-widest uppercase mb-2">Comparando motores</p>
+          <p className="text-sm text-crema/70">Arriba usas <b className="text-crema">nuestro motor</b>. ¿Quieres ver cómo lo deja el <b className="text-crema">Estudio IA</b> y comparar?</p>
+          <a href={ESTUDIO_MEJORAR_URL} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 font-press-start text-[9px] text-carbon bg-maiz border-[3px] border-negro py-3 px-5 hover:bg-lima transition-colors uppercase tracking-wider">Probar en el Estudio IA ▸</a>
+        </div>
 
         {estado === 'proc' && (
           <div className="mt-6 text-center">
