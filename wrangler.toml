@@ -1,0 +1,23 @@
+name = "plato-vivo"
+main = "worker/index.js"
+compatibility_date = "2026-08-26"
+
+# Sirve el build de Vite (dist/) como assets estáticos.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"   # /nuevo, /?r=... → index.html
+
+[vars]
+MOTOR = "gemini"
+RESOLUCION = "1K"
+LIMITE_DIA = "120"
+LIMITE_IP = "40"
+
+# Cartas de los restaurantes (panel del dueño / alta).
+[[kv_namespaces]]
+binding = "CARTAS"
+id = "a0383838734a44be8d41f48811505069"
+
+[observability]
+enabled = true
