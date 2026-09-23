@@ -9,6 +9,7 @@
 
   const API_URL = '/api/generate';
   const MAX_UPLOAD_SIDE = 1536;
+  const POLL_TIMEOUT = 6 * 60 * 1000;
 
   // ---------- Estilos de mejora (se pueden editar libremente) ----------
   const EDIT_PRESETS = [
@@ -119,10 +120,6 @@
       r.onerror = reject;
       r.readAsDataURL(blob);
     });
-  }
-
-  async function dataUrlToBlob(dataUrl) {
-    return (await fetch(dataUrl)).blob();
   }
 
   // Reduce la foto del celular (que puede pesar 5-10 MB) antes de enviarla.
@@ -241,20 +238,20 @@
     api.checked = true;
     pill.classList.toggle('is-live', api.ready);
     pill.classList.toggle('is-demo', !api.ready);
-    $('#statusText').textContent = api.ready ? 'IA conectada' : 'Modo demo';
+    $('#statusText').textContent = api.ready ? 'Higgsfield conectado' : 'Modo demo';
   }
 
   function explainStatus() {
     if (api.ready) {
-      openSheet('IA conectada', `<p>El estudio está conectado al generador de imágenes. Cada imagen generada consume créditos de tu cuenta de IA.</p>
+      openSheet('Higgsfield conectado', `<p>El estudio está conectado a la API de Higgsfield. Cada imagen generada consume saldo de tu cuenta de Higgsfield Cloud.</p>
         ${api.needsCode ? '<button class="btn btn-ghost btn-block" type="button" id="resetCode">Cambiar código de acceso</button>' : ''}`);
       $('#resetCode')?.addEventListener('click', () => { store.set('pv-code', ''); closeSheet(); toast('Se pedirá el código otra vez'); });
     } else {
-      openSheet('Modo demo', `<p>Todavía no hay una API key configurada en el servidor, así que:</p>
+      openSheet('Modo demo', `<p>Todavía no están configuradas las credenciales de Higgsfield (HF_KEY) en el servidor, así que:</p>
         <ul><li><strong>Mejorar</strong> usa un ajuste automático de luz y color (gratis, en tu celular).</li>
         <li><strong>Marca</strong> funciona completa.</li>
         <li><strong>Crear</strong> y <strong>Diseño con IA</strong> necesitan la API.</li></ul>
-        <p class="muted">Para activar la IA revisa el archivo README.md del proyecto.</p>`);
+        <p class="muted">Para conectar Higgsfield revisa el archivo README.md del proyecto.</p>`);
     }
   }
 
@@ -271,21 +268,49 @@
     });
   }
 
-  async function callApi(body) {
+  async function callApi(body, onStatus) {
     let code = store.get('pv-code', '');
     if (api.needsCode && !code) {
       code = await askCode();
       if (!code) throw new Error('Se necesita el código de acceso');
     }
-    const res = await fetch(API_URL, {
+    const headers = { 'x-studio-key': code || '' };
+    const request = async (url, init = {}) => {
+      const res = await fetch(url, { ...init, headers: { ...headers, ...(init.headers || {}) } });
+      const json = await res.json().catch(() => ({}));
+      if (res.status === 401) store.set('pv-code', '');
+      if (!res.ok) throw new Error(json.error || `Error ${res.status}`);
+      return json;
+    };
+
+    // 1. Enviar el trabajo a Higgsfield
+    const { id } = await request(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-studio-key': code || '' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
-    const json = await res.json().catch(() => ({}));
-    if (res.status === 401) store.set('pv-code', '');
-    if (!res.ok || !json.image) throw new Error(json.error || `Error ${res.status}`);
-    return dataUrlToBlob(json.image);
+
+    // 2. Consultar hasta que esté lista (la API de Higgsfield es asíncrona)
+    const started = Date.now();
+    const statusUrl = `${API_URL}?id=${encodeURIComponent(id)}`;
+    let job;
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 2500));
+      job = await request(statusUrl);
+      if (job.error) throw new Error(job.error);
+      if (job.ready) break;
+      onStatus?.(job.status === 'queued' ? 'En fila en Higgsfield…' : null);
+      if (Date.now() - started > POLL_TIMEOUT) throw new Error('Higgsfield tardó demasiado. Revisa tu galería en unos minutos o intenta de nuevo.');
+    }
+
+    // 3. Descargar la imagen: directo si el servidor de Higgsfield lo permite, si no a través de /api
+    try {
+      const direct = await fetch(job.url, { mode: 'cors' });
+      if (direct.ok) return await direct.blob();
+    } catch { /* CORS: usar el respaldo */ }
+    const res = await fetch(`${statusUrl}&file=1`, { headers });
+    if (!res.ok) throw new Error('No se pudo descargar la imagen generada');
+    return res.blob();
   }
 
   // Muestra la capa de "generando…" con frases y segundos transcurridos.
@@ -295,6 +320,7 @@
     const time = $('.loading-time', layer);
     const start = Date.now();
     let i = 0;
+    let fixed = null; // mensaje de estado real (p. ej. "En fila")
     text.textContent = LOADING_LINES[0];
     time.textContent = '0 s';
     layer.hidden = false;
@@ -302,9 +328,12 @@
     const timer = setInterval(() => {
       const s = Math.round((Date.now() - start) / 1000);
       time.textContent = `${s} s`;
-      if (s % 4 === 0) text.textContent = LOADING_LINES[++i % LOADING_LINES.length];
+      if (fixed) text.textContent = fixed;
+      else if (s % 4 === 0) text.textContent = LOADING_LINES[++i % LOADING_LINES.length];
     }, 1000);
-    return () => { clearInterval(timer); layer.hidden = true; };
+    const stop = () => { clearInterval(timer); layer.hidden = true; };
+    stop.status = (msg) => { fixed = msg; if (msg) text.textContent = msg; };
+    return stop;
   }
 
   // ---------- Ajuste local gratis (sin IA) ----------
@@ -459,7 +488,7 @@
       if (useAi) {
         const extra = $('#editExtra').value.trim();
         const prompt = `${EDIT_BASE}${edit.preset.prompt}${extra ? ` Additional instructions from the restaurant: ${extra}` : ''}`;
-        blob = await callApi({ mode: 'edit', prompt, aspect: edit.aspect, image: await blobToDataUrl(edit.source) });
+        blob = await callApi({ mode: 'edit', prompt, aspect: edit.aspect, image: await blobToDataUrl(edit.source) }, stop.status);
       } else {
         blob = await localEnhance(edit.source);
         if (!local) toast('Modo demo: se aplicó el ajuste automático gratis');
@@ -487,7 +516,7 @@
     const stop = startLoading(card);
     $('#createGo').disabled = true;
     try {
-      const blob = await callApi({ mode: 'generate', prompt: text + CREATE_STYLE, aspect: create.aspect });
+      const blob = await callApi({ mode: 'generate', prompt: text + CREATE_STYLE, aspect: create.aspect }, stop.status);
       create.result = blob;
       const img = $('#createImg');
       if (img.src) URL.revokeObjectURL(img.src);
@@ -937,7 +966,7 @@
     $('#aiPosterBtn').disabled = true;
     try {
       const aspect = brand.template === 'story' ? '9:16' : brand.format;
-      const blob = await callApi({ mode: 'edit', prompt, aspect, image: await blobToDataUrl(brand.imageBlob) });
+      const blob = await callApi({ mode: 'edit', prompt, aspect, image: await blobToDataUrl(brand.imageBlob) }, stop.status);
       await gallery.add(blob, 'Diseño IA', k.title || k.name);
       const url = URL.createObjectURL(blob);
       openSheet('Diseño con IA', `<img src="${url}" alt="Diseño generado con IA">

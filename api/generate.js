@@ -1,174 +1,167 @@
-// Función serverless (Vercel) que conecta el Estudio con el modelo de imágenes.
-// La API key vive SOLO aquí (variables de entorno), nunca en el navegador.
+// Función serverless (Vercel) que conecta el Estudio con la API pública de Higgsfield
+// (https://cloud.higgsfield.ai). Tus credenciales viven SOLO aquí, nunca en el navegador.
 //
 // Variables de entorno:
-//   IMAGE_PROVIDER      "openai" (por defecto) o "fal"
-//   OPENAI_API_KEY      clave de OpenAI (si usas openai)
-//   OPENAI_IMAGE_MODEL  modelo de imagen, por defecto "gpt-image-1"
-//   FAL_KEY             clave de fal.ai (si usas fal)
-//   STUDIO_PASSWORD     opcional: código de acceso para que nadie más gaste tus créditos
+//   HF_KEY                  credenciales de Higgsfield Cloud en formato "API_KEY:API_SECRET"
+//                           (o bien HF_API_KEY y HF_API_SECRET por separado)
+//   HIGGSFIELD_EDIT_MODEL   modelo para mejorar fotos (por defecto bytedance/seedream/v4/edit)
+//   HIGGSFIELD_T2I_MODEL    modelo para crear desde texto (por defecto bytedance/seedream/v4/text-to-image)
+//   HIGGSFIELD_RESOLUTION   1K, 2K o 4K (por defecto 2K)
+//   STUDIO_PASSWORD         opcional: código de acceso para que nadie más gaste tus créditos
+//
+// Flujo (la API de Higgsfield es asíncrona):
+//   POST /api/generate                 → sube la foto, envía el trabajo y devuelve { id }
+//   GET  /api/generate?id=...          → { status } mientras se genera
+//   GET  /api/generate?id=...&file=1   → la imagen terminada
 
-const PROVIDER = (process.env.IMAGE_PROVIDER || 'openai').toLowerCase();
-const OPENAI_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
+const BASE_URL = 'https://api.higgsfield.ai';
+const EDIT_MODEL = process.env.HIGGSFIELD_EDIT_MODEL || 'bytedance/seedream/v4/edit';
+const T2I_MODEL = process.env.HIGGSFIELD_T2I_MODEL || 'bytedance/seedream/v4/text-to-image';
+const RESOLUTION = process.env.HIGGSFIELD_RESOLUTION || '2K';
+const ASPECTS = new Set(['1:1', '4:5', '9:16', '16:9']);
+const ID_RE = /^[a-zA-Z0-9-]{8,80}$/;
 const MAX_PROMPT = 2000;
 
-const OPENAI_SIZES = {
-  '1:1': '1024x1024',
-  '4:5': '1024x1536',
-  '9:16': '1024x1536',
-  '16:9': '1536x1024',
-};
-
-const FAL_SIZES = {
-  '1:1': 'square_hd',
-  '4:5': 'portrait_4_3',
-  '9:16': 'portrait_16_9',
-  '16:9': 'landscape_16_9',
-};
-
-const FAL_RATIOS = { '1:1': '1:1', '4:5': '3:4', '9:16': '9:16', '16:9': '16:9' };
-
-function isReady() {
-  if (PROVIDER === 'fal') return Boolean(process.env.FAL_KEY);
-  return Boolean(process.env.OPENAI_API_KEY);
+function credentials() {
+  if (process.env.HF_KEY) return process.env.HF_KEY.trim();
+  if (process.env.HF_API_KEY && process.env.HF_API_SECRET) {
+    return `${process.env.HF_API_KEY.trim()}:${process.env.HF_API_SECRET.trim()}`;
+  }
+  return '';
 }
 
-function dataUriToBuffer(dataUri) {
-  const match = /^data:(image\/[a-z+]+);base64,(.+)$/i.exec(dataUri || '');
-  if (!match) return null;
-  return { type: match[1], buffer: Buffer.from(match[2], 'base64') };
+class HiggsfieldError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.status = status;
+  }
 }
 
-async function openaiRequest(path, init) {
-  const res = await fetch(`https://api.openai.com/v1/images/${path}`, {
+function explain(status, json) {
+  const detail = json?.detail;
+  const msg = typeof detail === 'string' ? detail
+    : Array.isArray(detail) ? detail.map((d) => `${(d.loc || []).slice(-1)[0] || ''} ${d.msg || ''}`.trim()).join('; ')
+    : json?.message || json?.error || '';
+  if (status === 401 || status === 403) return 'Higgsfield rechazó las credenciales (revisa HF_KEY).';
+  if (status === 402) return 'No tienes saldo suficiente en Higgsfield Cloud.';
+  if (status === 429) return 'Higgsfield está limitando las solicitudes, intenta en un momento.';
+  return `Higgsfield respondió ${status}${msg ? `: ${msg}` : ''}`;
+}
+
+async function hf(path, init = {}) {
+  const url = path.startsWith('http') ? path : `${BASE_URL}/${path.replace(/^\//, '')}`;
+  const res = await fetch(url, {
     ...init,
-    headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, ...(init.headers || {}) },
+    headers: {
+      Authorization: `Key ${credentials()}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...(init.headers || {}),
+    },
   });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const err = new Error(json?.error?.message || `OpenAI respondió ${res.status}`);
-    err.status = res.status;
-    throw err;
-  }
-  return `data:image/jpeg;base64,${json.data[0].b64_json}`;
+  if (!res.ok) throw new HiggsfieldError(explain(res.status, json), res.status);
+  return json;
 }
 
-async function openaiGenerate({ prompt, aspect }) {
-  return openaiRequest('generations', {
+// Sube la foto a Higgsfield y devuelve su URL pública (igual que higgsfield_client.upload).
+async function uploadImage(dataUri) {
+  const match = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/i.exec(dataUri || '');
+  if (!match) throw new HiggsfieldError('Sube una foto del platillo (JPG, PNG o WebP).', 400);
+  const [, contentType, b64] = match;
+  const slot = await hf('files/generate-upload-url', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: OPENAI_MODEL,
-      prompt,
-      size: OPENAI_SIZES[aspect] || '1024x1024',
-      quality: 'high',
-      output_format: 'jpeg',
-      output_compression: 88,
-    }),
+    body: JSON.stringify({ content_type: contentType }),
   });
+  const put = await fetch(slot.upload_url, {
+    method: 'PUT',
+    headers: slot.upload_headers || { 'Content-Type': contentType },
+    body: Buffer.from(b64, 'base64'),
+  });
+  if (!put.ok) throw new HiggsfieldError(`No se pudo subir la foto a Higgsfield (${put.status}).`, 502);
+  return slot.public_url;
 }
 
-async function openaiEdit({ prompt, aspect, image }, highFidelity = true) {
-  const form = new FormData();
-  form.append('model', OPENAI_MODEL);
-  form.append('prompt', prompt);
-  form.append('size', OPENAI_SIZES[aspect] || 'auto');
-  form.append('quality', 'high');
-  form.append('output_format', 'jpeg');
-  form.append('output_compression', '88');
-  // Mantiene el platillo lo más parecido posible al original.
-  if (highFidelity) form.append('input_fidelity', 'high');
-  form.append('image', new Blob([image.buffer], { type: image.type }), 'plato.jpg');
-  try {
-    return await openaiRequest('edits', { method: 'POST', body: form });
-  } catch (err) {
-    // Algunos modelos no aceptan input_fidelity: reintenta sin él.
-    if (highFidelity && err.status === 400 && /fidelity/i.test(err.message)) {
-      return openaiEdit({ prompt, aspect, image }, false);
-    }
-    throw err;
+async function submit({ mode, prompt, aspect, image }) {
+  const args = { prompt, aspect_ratio: aspect, resolution: RESOLUTION };
+  let model = T2I_MODEL;
+  if (mode === 'edit') {
+    model = EDIT_MODEL;
+    const url = await uploadImage(image);
+    // Los modelos de edición usan uno u otro nombre según el proveedor; se envían ambos.
+    args.image_url = url;
+    args.image_urls = [url];
   }
+  const job = await hf(model, { method: 'POST', body: JSON.stringify(args) });
+  if (!job.request_id) throw new HiggsfieldError('Higgsfield no devolvió un id de trabajo.', 502);
+  return job.request_id;
 }
 
-async function falRequest(model, body) {
-  const res = await fetch(`https://fal.run/${model}`, {
-    method: 'POST',
-    headers: { Authorization: `Key ${process.env.FAL_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json?.detail?.[0]?.msg || json?.detail || `fal.ai respondió ${res.status}`);
-  const url = json?.images?.[0]?.url;
-  if (!url) throw new Error('fal.ai no devolvió ninguna imagen');
-  // Se descarga aquí para que el navegador reciba la imagen sin problemas de CORS.
-  const img = await fetch(url);
-  const buf = Buffer.from(await img.arrayBuffer());
-  return `data:${img.headers.get('content-type') || 'image/jpeg'};base64,${buf.toString('base64')}`;
-}
-
-function falGenerate({ prompt, aspect }) {
-  return falRequest('fal-ai/flux-pro/v1.1', {
-    prompt,
-    image_size: FAL_SIZES[aspect] || 'square_hd',
-    output_format: 'jpeg',
-  });
-}
-
-function falEdit({ prompt, aspect, imageDataUri }) {
-  return falRequest('fal-ai/flux-pro/kontext', {
-    prompt,
-    image_url: imageDataUri,
-    aspect_ratio: FAL_RATIOS[aspect] || '1:1',
-    output_format: 'jpeg',
-  });
+function checkCode(req) {
+  const code = process.env.STUDIO_PASSWORD;
+  return !code || req.headers['x-studio-key'] === code;
 }
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  const ready = Boolean(credentials());
+  const { id, file } = req.query || {};
 
-  if (req.method === 'GET') {
-    return res.status(200).json({
-      ready: isReady(),
-      provider: PROVIDER,
-      needsCode: Boolean(process.env.STUDIO_PASSWORD),
-    });
+  // Estado del servidor (sin id): el estudio lo usa para saber si hay IA.
+  if (req.method === 'GET' && !id) {
+    return res.status(200).json({ ready, provider: 'higgsfield', needsCode: Boolean(process.env.STUDIO_PASSWORD) });
   }
-
-  if (req.method !== 'POST') {
+  if (req.method !== 'GET' && req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST');
     return res.status(405).json({ error: 'Método no permitido' });
   }
-
-  if (!isReady()) {
-    return res.status(503).json({ error: 'Falta configurar la API key en el servidor.' });
-  }
-
-  if (process.env.STUDIO_PASSWORD && req.headers['x-studio-key'] !== process.env.STUDIO_PASSWORD) {
-    return res.status(401).json({ error: 'Código de acceso incorrecto.' });
-  }
-
-  const { mode, prompt, aspect = '1:1', image } = req.body || {};
-  if (typeof prompt !== 'string' || !prompt.trim()) {
-    return res.status(400).json({ error: 'Escribe qué quieres generar.' });
-  }
-  const cleanPrompt = prompt.trim().slice(0, MAX_PROMPT);
+  if (!ready) return res.status(503).json({ error: 'Falta configurar HF_KEY en el servidor.' });
+  if (!checkCode(req)) return res.status(401).json({ error: 'Código de acceso incorrecto.' });
 
   try {
-    let result;
-    if (mode === 'edit') {
-      const parsed = dataUriToBuffer(image);
-      if (!parsed) return res.status(400).json({ error: 'Sube una foto del platillo.' });
-      result = PROVIDER === 'fal'
-        ? await falEdit({ prompt: cleanPrompt, aspect, imageDataUri: image })
-        : await openaiEdit({ prompt: cleanPrompt, aspect, image: parsed });
-    } else {
-      result = PROVIDER === 'fal'
-        ? await falGenerate({ prompt: cleanPrompt, aspect })
-        : await openaiGenerate({ prompt: cleanPrompt, aspect });
+    // Consultar un trabajo en curso
+    if (req.method === 'GET') {
+      if (!ID_RE.test(String(id))) return res.status(400).json({ error: 'Id inválido' });
+      const job = await hf(`requests/${id}/status`);
+      const url = job.images?.[0]?.url;
+
+      if (file) {
+        if (job.status !== 'completed' || !url) return res.status(409).json({ error: 'La imagen aún no está lista' });
+        // Se reenvía la imagen desde aquí para que el navegador pueda editarla sin problemas de CORS.
+        const img = await fetch(url);
+        if (!img.ok) throw new HiggsfieldError(`No se pudo descargar la imagen (${img.status}).`, 502);
+        res.setHeader('Content-Type', img.headers.get('content-type') || 'image/jpeg');
+        return res.status(200).send(Buffer.from(await img.arrayBuffer()));
+      }
+
+      const messages = {
+        nsfw: 'Higgsfield rechazó la imagen por moderación (no se cobraron créditos).',
+        failed: 'La generación falló en Higgsfield (no se cobraron créditos).',
+        canceled: 'La generación fue cancelada.',
+      };
+      return res.status(200).json({
+        status: job.status,
+        ready: job.status === 'completed' && Boolean(url),
+        url: job.status === 'completed' ? url : undefined,
+        error: messages[job.status],
+      });
     }
-    return res.status(200).json({ image: result });
+
+    // Crear un trabajo nuevo
+    const { mode, prompt, aspect = '1:1', image } = req.body || {};
+    if (typeof prompt !== 'string' || !prompt.trim()) {
+      return res.status(400).json({ error: 'Escribe qué quieres generar.' });
+    }
+    const requestId = await submit({
+      mode: mode === 'edit' ? 'edit' : 'generate',
+      prompt: prompt.trim().slice(0, MAX_PROMPT),
+      aspect: ASPECTS.has(aspect) ? aspect : '1:1',
+      image,
+    });
+    return res.status(202).json({ id: requestId });
   } catch (err) {
-    console.error('[generate]', err);
-    return res.status(502).json({ error: err.message || 'No se pudo generar la imagen.' });
+    console.error('[higgsfield]', err);
+    const status = err instanceof HiggsfieldError && err.status >= 400 && err.status < 500 ? err.status : 502;
+    return res.status(status === 401 ? 502 : status).json({ error: err.message || 'No se pudo generar la imagen.' });
   }
 }

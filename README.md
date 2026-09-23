@@ -1,6 +1,6 @@
 # Plato Vivo · Estudio IA
 
-Un estudio de imágenes con IA al estilo Higgsfield, **pensado para usarse desde el celular**, integrado a la landing de Plato Vivo.
+Un estudio de imágenes con IA al estilo Higgsfield y **conectado a la API pública de Higgsfield**, pensado para usarse desde el celular e integrado a la landing de Plato Vivo.
 
 | Sección | Qué hace | ¿Usa IA? |
 |---|---|---|
@@ -20,27 +20,42 @@ estudio/
   estudio.js               ← lógica: estilos, plantillas, galería, editor de marca
   manifest.webmanifest     ← permite "Agregar a pantalla de inicio" en el celular
 api/
-  generate.js              ← servidor: aquí vive tu API key (nunca en el navegador)
+  generate.js              ← servidor conectado a la API de Higgsfield (tus credenciales viven aquí, nunca en el navegador)
 vercel.json                ← configuración para Vercel
 .env.example               ← variables que tienes que llenar
 ```
 
-## Ponerlo en línea (Vercel, gratis)
+## Ponerlo en línea (Vercel, gratis) con la API de Higgsfield
 
-1. Entra a [vercel.com](https://vercel.com) con tu cuenta de GitHub y elige **Add New → Project**.
-2. Importa este repositorio (`PC`) y presiona **Deploy**. No hay que configurar nada más.
+1. Crea tus credenciales en [cloud.higgsfield.ai](https://cloud.higgsfield.ai) → **API Keys**. Te da un **API Key** y un **API Secret**. Carga saldo (la API cobra en dólares por imagen, aparte de tu plan de la app).
+2. Entra a [vercel.com](https://vercel.com) con tu cuenta de GitHub y elige **Add New → Project**. Importa este repositorio (`PC`) y presiona **Deploy**.
 3. En el proyecto ve a **Settings → Environment Variables** y agrega:
-   - `OPENAI_API_KEY` con tu clave de [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-   - `STUDIO_PASSWORD` con un código que solo tú conozcas (**muy recomendado**: sin él, cualquiera con el link podría gastar tus créditos)
+   - `HF_KEY` = `TU_API_KEY:TU_API_SECRET` (las dos juntas, separadas por dos puntos)
+   - `STUDIO_PASSWORD` = un código que solo tú conozcas (**muy recomendado**: sin él, cualquiera con el link podría gastar tu saldo)
 4. Ve a **Deployments** y vuelve a desplegar (**Redeploy**) para que tome las variables.
-5. Abre `https://tu-proyecto.vercel.app/estudio/` en el celular. Arriba a la derecha debe decir **"IA conectada"**.
+5. Abre `https://tu-proyecto.vercel.app/estudio/` en el celular. Arriba a la derecha debe decir **"Higgsfield conectado"**.
 
-> Sin API key el estudio funciona en **modo demo**: la sección Marca funciona completa y Mejorar aplica un ajuste automático gratis de luz y color.
+> Sin `HF_KEY` el estudio funciona en **modo demo**: la sección Marca funciona completa y Mejorar aplica un ajuste automático gratis de luz y color.
 
-### ¿Prefieres otro proveedor de IA?
+### Cómo se conecta con Higgsfield
 
-El servidor también funciona con [fal.ai](https://fal.ai) (modelos FLUX): pon `IMAGE_PROVIDER=fal` y `FAL_KEY=tu_clave`.
-Para cambiar el modelo de OpenAI usa `OPENAI_IMAGE_MODEL` (por defecto `gpt-image-1`).
+`api/generate.js` usa la misma API que los SDK oficiales de Higgsfield (`https://api.higgsfield.ai`):
+
+1. Sube la foto del platillo con `POST /files/generate-upload-url`.
+2. Envía el trabajo al modelo (`POST /{modelo}`) con el prompt, `aspect_ratio` y `resolution`.
+3. El celular consulta `GET /requests/{id}/status` cada 2.5 s hasta que dice `completed` y descarga la imagen.
+
+### Cambiar de modelo
+
+Puedes usar cualquier modelo de imagen del catálogo de Higgsfield Cloud sin tocar código, con estas variables:
+
+| Variable | Para qué | Por defecto |
+|---|---|---|
+| `HIGGSFIELD_EDIT_MODEL` | Mejorar foto y Diseño con IA (recibe tu foto) | `bytedance/seedream/v4/edit` |
+| `HIGGSFIELD_T2I_MODEL` | Crear desde texto | `bytedance/seedream/v4/text-to-image` |
+| `HIGGSFIELD_RESOLUTION` | Calidad: `1K`, `2K` o `4K` | `2K` |
+
+Copia el id exacto del modelo tal como aparece en el catálogo de la API.
 
 ## Integrarlo en tu landing actual
 
@@ -69,8 +84,8 @@ npm i -g vercel
 vercel dev
 ```
 
-Luego abre `http://localhost:3000/estudio/`. Pon tus claves en un archivo `.env.local` (copia `.env.example`).
+Luego abre `http://localhost:3000/estudio/`. Pon tus credenciales en un archivo `.env.local` (copia `.env.example`).
 
 ## Costos
 
-Cada imagen con IA consume créditos del proveedor (en OpenAI, una imagen de calidad alta cuesta aproximadamente entre USD 0.17 y 0.25). El "Ajuste rápido gratis" y la sección **Marca** no cuestan nada.
+Cada imagen con IA se cobra de tu saldo de Higgsfield Cloud (el precio depende del modelo y la resolución; lo ves en el catálogo). Si Higgsfield rechaza una imagen por moderación o la generación falla, no se cobra. El "Ajuste rápido gratis" y la sección **Marca** no cuestan nada.
