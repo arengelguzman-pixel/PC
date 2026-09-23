@@ -10,6 +10,8 @@ Un estudio de imágenes con IA al estilo Higgsfield y **conectado a la API públ
 | **Diseño con IA (beta)** | La IA arma un anuncio completo con tu foto y tus textos. | Sí |
 | **Galería** | Todo lo que generas se guarda en el celular para descargar, compartir o reutilizar. | — |
 
+> **¿Vas a integrarlo a la landing oficial?** Sigue [INTEGRACION.md](INTEGRACION.md).
+
 ## Estructura
 
 ```
