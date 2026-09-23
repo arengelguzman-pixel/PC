@@ -7,7 +7,8 @@
     "dev": "tsx server.ts",
     "build": "tsc -b && vite build",
     "preview": "NODE_ENV=production tsx server.ts",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "deploy": "vite build && wrangler deploy"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
