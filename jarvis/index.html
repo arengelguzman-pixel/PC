@@ -8,6 +8,7 @@
   --line:#C5CED7; --accent:#A96400; --accent-bg:#F0AA2A; --accent-on:#1C1300;
   --st-activo:#2B7654; --st-bloqueado:#B8372B; --st-pausado:#6B7986; --st-lanzado:#2A58A0;
   --tint-bad:#F6DEDA; --tint-hot:#FBEBC8; --focus:#2A58A0;
+  --mt-fable:#B05A00; --mt-opus:#6B3FA0; --mt-sonnet:#0F6E7A; --mt-haiku:#2B7654; --mt-higgsfield:#A8306B;
   --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
   --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
@@ -19,6 +20,7 @@
     --line:#26323F; --accent:#F2B545; --accent-bg:#F2B545; --accent-on:#1C1300;
     --st-activo:#4DB384; --st-bloqueado:#E5695C; --st-pausado:#8494A2; --st-lanzado:#6D9CE2;
     --tint-bad:#3A1F1E; --tint-hot:#3A2E14; --focus:#6D9CE2;
+  --mt-fable:#F2A03D; --mt-opus:#B68BE8; --mt-sonnet:#4FD3E4; --mt-haiku:#4DB384; --mt-higgsfield:#F06BA8;
   }
 }
 :root[data-theme="dark"]{
@@ -27,6 +29,7 @@
   --line:#26323F; --accent:#F2B545; --accent-bg:#F2B545; --accent-on:#1C1300;
   --st-activo:#4DB384; --st-bloqueado:#E5695C; --st-pausado:#8494A2; --st-lanzado:#6D9CE2;
   --tint-bad:#3A1F1E; --tint-hot:#3A2E14; --focus:#6D9CE2;
+  --mt-fable:#F2A03D; --mt-opus:#B68BE8; --mt-sonnet:#4FD3E4; --mt-haiku:#4DB384; --mt-higgsfield:#F06BA8;
 }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:0 64px}
@@ -218,6 +221,32 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
 .btn.bad{background:var(--st-bloqueado);color:#fff;border-color:transparent}
 .link.bad{color:var(--st-bloqueado)}
 
+/* motor de IA: de qué modelo es cada meta */
+.m-fable{--mt:var(--mt-fable)} .m-opus{--mt:var(--mt-opus)} .m-sonnet{--mt:var(--mt-sonnet)}
+.m-haiku{--mt:var(--mt-haiku)} .m-higgsfield{--mt:var(--mt-higgsfield)}
+.mchip{font-family:var(--f-display);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 7px;border-radius:4px;background:color-mix(in srgb,var(--mt) 15%,transparent);color:var(--mt);
+  white-space:nowrap;flex:none;border:1px solid color-mix(in srgb,var(--mt) 35%,transparent)}
+.mins{font-family:var(--f-mono);font-size:12px;color:var(--ink-3);flex:none}
+
+/* techos de consumo */
+.lims{display:flex;flex-direction:column;gap:12px}
+.lim{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:baseline}
+.lim b{font-weight:600;font-size:14px}
+.lim .pc{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums}
+.lim .bar{grid-column:1/-1;height:8px}
+.lim .bar i{background:var(--lc)}
+.lim small{grid-column:1/-1;font-size:12px;color:var(--ink-3)}
+.lim.hot .pc{color:var(--accent)} .lim.over .pc{color:var(--st-bloqueado)}
+.lim.over .bar i{background:var(--st-bloqueado)}
+.lim-edit{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lim-edit input{width:88px;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-family:var(--f-mono)}
+.routes{border-collapse:collapse;width:100%;font-size:14px}
+.routes th,.routes td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.routes th{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-3);font-weight:600}
+.routes td:first-child{width:118px}
+.routes small{color:var(--ink-3)}
+.golden{background:var(--tint-hot);border-radius:8px;padding:12px 14px;font-size:14px;margin:0}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:20;max-width:calc(100% - 32px)}
 .loading{padding:60px 0;color:var(--ink-3);text-align:center}
 
@@ -284,13 +313,23 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
 
   const STATUS = { activo: "Activo", bloqueado: "Bloqueado", pausado: "Pausado", lanzado: "Lanzado" };
   const WEIGHT = { bloqueado: 0, activo: 1, pausado: 2, lanzado: 3 };
-  const TABS = { hoy: "Hoy", proyectos: "Proyectos", lanzamientos: "Lanzamientos" };
+  const TABS = { hoy: "Hoy", proyectos: "Proyectos", lanzamientos: "Lanzamientos", consumo: "Consumo" };
+
+  // ---------- motores (viene de la Consola Retroglobal) ----------
+  const MOTORES = {
+    fable:      { n: "Fable 5",    d: "Lo más difícil del día: refactor multiarchivo, bug feo, arquitectura nueva" },
+    opus:       { n: "Opus",       d: "Tarea larga de horas sin perder el hilo" },
+    sonnet:     { n: "Sonnet 5",   d: "Terminal, git, builds, componentes y CRUD. Le gana a Opus en terminal" },
+    haiku:      { n: "Haiku 4.5",  d: "Mecánico: renombrar, formatear, buscar y reemplazar" },
+    higgsfield: { n: "Higgsfield", d: "Imagen y video. Gasta créditos, no sesión: puede ir en paralelo" },
+  };
+  const LIM_DEF = { sesion: 0, semanal: 0, opus: 0, higgs: 5212, at: 0 };
 
   // ---------- estado ----------
   const S = {
     projects: new Map(), days: new Map(),
     view: "hoy", date: TODAY(), open: null, filter: "todos",
-    backend: "cargando", readyP: false, readyD: false,
+    limites: null, backend: "cargando", readyP: false, readyD: false, readyL: false,
     newOpen: false, confirmDel: false,
     plan: null, planState: "idle", planErr: "", canPlan: null,
   };
@@ -298,7 +337,7 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
 
   let db = null, sample = null, planCtl = null;
   const LS_KEY = "jarvis-local-v1";
-  const lsSave = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ projects: [...S.projects.values()], days: [...S.days.values()] })); } catch {} };
+  const lsSave = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ projects: [...S.projects.values()], days: [...S.days.values()], limites: S.limites })); } catch {} };
   const lsLoad = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)); } catch { return null; } };
 
   // ---------- guardado (una escritura a la vez por documento) ----------
@@ -321,6 +360,8 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
     if (opts.quiet) dirty = true; else render();
   }
   function removeProject(id) { S.projects.delete(id); persist("projects/" + id, null); render(); }
+  const getLim = () => ({ ...LIM_DEF, ...(S.limites || {}) });
+  function saveLim(l) { l.at = Date.now(); S.limites = l; persist("config/limites", l); render(); }
   function getDay(date) { return clone(S.days.get(date)) || { date, goals: [], log: [] }; }
   function saveDay(d) { d.goals = d.goals || []; d.log = d.log || []; S.days.set(d.date, d); persist("days/" + d.date, d); render(); }
 
@@ -379,6 +420,12 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
     if (!p) return '<span class="nochip"></span>';
     return `<button class="chip s-${esc(p.status)}" data-act="open" data-id="${esc(p.id)}" title="${esc(p.name)}">${esc(p.code || "—")}</button>`;
   }
+  function mchip(m) {
+    const d = MOTORES[m]; if (!d) return "";
+    return `<span class="mchip m-${esc(m)}" title="${esc(d.d)}">${esc(d.n)}</span>`;
+  }
+  const motorOptions = sel => `<option value="">Motor</option>` +
+    Object.keys(MOTORES).map(k => `<option value="${k}" ${k === sel ? "selected" : ""}>${MOTORES[k].n}</option>`).join("");
   const projOptions = sel => `<option value="">Sin proyecto</option>` + projList().filter(p => p.status !== "lanzado")
     .map(p => `<option value="${esc(p.id)}" ${p.id === sel ? "selected" : ""}>${esc(p.name)}</option>`).join("");
   function spark(pid, cls = "spark") {
@@ -426,16 +473,21 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
       <div class="hoy-grid">
         <div class="col">
           <section class="card">
-            <div class="card-h"><h2>Metas del día</h2><span class="count">${done}/${goals.length} hechas</span></div>
+            <div class="card-h"><h2>Metas del día</h2><span class="count">${done}/${goals.length} hechas${(() => {
+              const m = goals.reduce((t, g) => t + (Number(g.min) || 0), 0);
+              return m ? ` · ${Math.floor(m / 60) ? Math.floor(m / 60) + " h " : ""}${m % 60 ? (m % 60) + " min" : ""}` : "";
+            })()}</span></div>
             ${carry ? `<div class="carry"><span>Quedaron <b>${carry.goals.length}</b> ${carry.goals.length === 1 ? "meta pendiente" : "metas pendientes"} del ${esc(fShort.format(parse(carry.date)))}.</span><button class="btn sm" data-act="carry" data-from="${carry.date}">Pasarlas a hoy</button></div>` : ""}
             <ul class="goals">${goals.length ? goals.map(g => `<li class="goal ${g.done ? "done" : ""}">
                 <label><input type="checkbox" data-act="goal-toggle" data-gid="${esc(g.id)}" ${g.done ? "checked" : ""} ${g.movedTo ? "disabled" : ""}><span>${esc(g.text)}${g.movedTo ? ` <em class="moved">· pasó al ${esc(fShort.format(parse(g.movedTo)))}</em>` : ""}</span></label>
+                ${g.min ? `<span class="mins">${esc(String(g.min))} min</span>` : ""}${mchip(g.motor)}
                 ${chip(g.projectId)}
                 <button class="icon" data-act="goal-del" data-gid="${esc(g.id)}" aria-label="Eliminar meta">×</button></li>`).join("")
               : `<li class="empty">Aún no hay metas${isToday ? " para hoy" : " este día"}. Escribe la primera o pídele a JARVIS que te proponga.</li>`}</ul>
             <form class="add-row" data-form="goal-add">
               <input id="goal-text" name="text" placeholder="Nueva meta" maxlength="200" required autocomplete="off">
               <select id="goal-proj" name="project" aria-label="Proyecto">${projOptions()}</select>
+              <select id="goal-motor" name="motor" aria-label="Motor" style="flex:0 1 150px">${motorOptions()}</select>
               <button class="btn">Agregar</button>
             </form>
           </section>
@@ -450,8 +502,29 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
               : '<li class="empty" style="display:block">Anota aquí cada cosa que avances. Así ves tu progreso real día a día.</li>'}</ol>
           </section>
         </div>
-        <div class="col">${jarvisCard(isToday)}${attentionCard()}</div>
+        <div class="col">${limitsCard()}${jarvisCard(isToday)}${attentionCard()}</div>
       </div>`;
+  }
+
+  const LIMS = [
+    { k: "sesion", n: "Sesión (5 h)", c: "var(--mt-fable)", h: "se vacía y vuelve cada ~5 horas" },
+    { k: "semanal", n: "Semanal general", c: "var(--mt-sonnet)", h: "doblar la sesión no agranda este tanque" },
+    { k: "opus", n: "Semanal de Opus", c: "var(--mt-opus)", h: "se cuenta aparte del semanal general" },
+  ];
+  function limBar(l, v) {
+    const cls = v >= 85 ? "over" : v >= 70 ? "hot" : "";
+    return `<div class="lim ${cls}" style="--lc:${l.c}"><b>${esc(l.n)}</b><span class="pc">${v}%</span>
+      <span class="bar"><i style="width:${Math.min(100, v)}%"></i></span><small>${esc(l.h)}</small></div>`;
+  }
+  function limitsCard() {
+    const L = getLim();
+    const alto = LIMS.filter(l => (Number(L[l.k]) || 0) >= 70);
+    return `<section class="card"><div class="card-h"><h2>Techos</h2>
+        <button class="link" data-act="tab" data-v="consumo">Ajustar</button></div>
+      <div class="lims">${LIMS.map(l => limBar(l, Number(L[l.k]) || 0)).join("")}</div>
+      ${alto.length ? `<p class="golden">${esc(alto.map(l => l.n).join(" y "))} ${alto.length > 1 ? "están" : "está"} por encima del 70%. Mandá lo mecánico a Haiku y lo de terminal a Sonnet.</p>` : ""}
+      <p class="muted" style="font-size:13px">Créditos Higgsfield: <b class="mono">${esc(String(Number(L.higgs) || 0))}</b></p>
+    </section>`;
   }
 
   function jarvisCard(isToday) {
@@ -465,7 +538,7 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
       if (S.plan) {
         const pending = S.plan.metas.some(m => !m.added);
         body += `<p class="brief">${esc(S.plan.briefing)}</p>
-          <ul class="sugg">${S.plan.metas.map((m, i) => `<li><div><b>${esc(m.texto)}</b>${m.porque ? `<small>${esc(m.porque)}</small>` : ""}</div>${chip(m.proyectoId)}<button class="btn sm" data-act="plan-add" data-i="${i}" ${m.added ? "disabled" : ""}>${m.added ? "Agregada" : "Agregar"}</button></li>`).join("")}</ul>
+          <ul class="sugg">${S.plan.metas.map((m, i) => `<li><div><b>${esc(m.texto)}</b>${m.porque ? `<small>${esc(m.porque)}</small>` : ""}</div>${m.minutos ? `<span class="mins">${esc(String(m.minutos))} min</span>` : ""}${mchip(m.motor)}${chip(m.proyectoId)}<button class="btn sm" data-act="plan-add" data-i="${i}" ${m.added ? "disabled" : ""}>${m.added ? "Agregada" : "Agregar"}</button></li>`).join("")}</ul>
           <div class="actions">${pending ? '<button class="btn primary sm" data-act="plan-add-all">Agregar todas</button>' : ""}<button class="link" data-act="plan">Proponer otras</button></div>`;
       } else {
         body += `<p class="muted">Lee tus proyectos, bloqueos, hitos pendientes y fechas de lanzamiento, y te propone las metas más importantes del día.</p>
@@ -540,6 +613,51 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
     return html;
   }
 
+  // ---------- vista CONSUMO ----------
+  function viewConsumo() {
+    const L = getLim();
+    const hoy = getDay(TODAY()).goals.filter(g => !g.movedTo);
+    const porMotor = Object.keys(MOTORES).map(k => {
+      const g = hoy.filter(x => x.motor === k);
+      return { k, n: g.length, min: g.reduce((t, x) => t + (Number(x.min) || 0), 0) };
+    }).filter(x => x.n);
+    return `<div class="view-h"><h1>Consumo</h1><p class="muted">Tres techos distintos, no uno. Y los créditos de Higgsfield, que van aparte.</p></div>
+      <div class="hoy-grid">
+        <div class="col">
+          <section class="card">
+            <div class="card-h"><h2>Dónde estás parado</h2><span class="count">${L.at ? "actualizado " + esc(fShort.format(new Date(L.at))) : "sin actualizar"}</span></div>
+            <div class="lims">${LIMS.map(l => limBar(l, Number(L[l.k]) || 0)).join("")}</div>
+            <form class="lim-edit" data-form="lim-save">
+              ${LIMS.map(l => `<label class="fld" style="flex:1 1 120px"><span style="font-size:11px">${esc(l.n)}</span>
+                <input type="number" name="${l.k}" min="0" max="100" step="1" value="${Number(L[l.k]) || 0}" aria-label="${esc(l.n)} en porcentaje"></label>`).join("")}
+              <label class="fld" style="flex:1 1 120px"><span style="font-size:11px">Créditos Higgsfield</span>
+                <input type="number" name="higgs" min="0" step="1" value="${Number(L.higgs) || 0}" aria-label="Créditos de Higgsfield"></label>
+              <button class="btn primary" style="align-self:end">Guardar</button>
+            </form>
+            <p class="muted" style="font-size:13px">Los porcentajes los pones tú: Claude no expone el consumo real. Míralo en la app y anótalo acá cuando cambie.</p>
+          </section>
+
+          <section class="card">
+            <div class="card-h"><h2>Reparto de hoy</h2><span class="count">${hoy.length} ${hoy.length === 1 ? "meta" : "metas"}</span></div>
+            ${porMotor.length
+              ? `<ul class="attn">${porMotor.map(x => `<li>${mchip(x.k)}<div class="t"><b>${x.n} ${x.n === 1 ? "meta" : "metas"}</b><span>${x.min ? x.min + " min estimados" : "sin tiempo estimado"}</span></div></li>`).join("")}</ul>`
+              : '<p class="muted">Ninguna meta de hoy tiene motor asignado todavía. Pon el motor al agregarla, o deja que JARVIS lo elija por ti.</p>'}
+          </section>
+        </div>
+
+        <div class="col">
+          <section class="card">
+            <div class="card-h"><h2>Qué va en cada motor</h2></div>
+            <table class="routes"><thead><tr><th>Motor</th><th>Para qué</th></tr></thead><tbody>
+              ${Object.keys(MOTORES).map(k => `<tr><td>${mchip(k)}</td><td>${esc(MOTORES[k].d)}</td></tr>`).join("")}
+            </tbody></table>
+            <p class="golden"><b>Regla de oro:</b> la primera hora de la mañana es para la tarea más dura del día, en Fable. Lo mecánico se va a la tarde, a Sonnet y Haiku.</p>
+            <p class="muted" style="font-size:13px">Sonnet le gana a Opus en trabajo de terminal (80.4 contra 74.6) y cuesta mucho menos. El modelo caro no es el mejor para todo.</p>
+          </section>
+        </div>
+      </div>`;
+  }
+
   // ---------- PANEL de proyecto ----------
   function panel() {
     const p = S.open && S.projects.get(S.open);
@@ -593,9 +711,10 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
   function render() {
     dirty = false;
     const app = $("#app");
-    if (!(S.readyP && S.readyD)) { app.innerHTML = `<p class="loading">Conectando con tus proyectos…</p>`; return; }
+    if (!(S.readyP && S.readyD && S.readyL)) { app.innerHTML = `<p class="loading">Conectando con tus proyectos…</p>`; return; }
     const pScroll = $(".panel") ? $(".panel").scrollTop : 0, wScroll = window.scrollY;
-    const view = S.view === "hoy" ? viewHoy() : S.view === "proyectos" ? viewProyectos() : viewLanz();
+    const view = S.view === "hoy" ? viewHoy() : S.view === "proyectos" ? viewProyectos()
+      : S.view === "consumo" ? viewConsumo() : viewLanz();
     app.innerHTML = header() + stats() + `<main>${view}</main>` + panel();
     const pn = $(".panel"); if (pn) pn.scrollTop = pScroll;
     window.scrollTo(0, wScroll);
@@ -606,9 +725,12 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
   document.addEventListener("focusout", () => { if (dirty) setTimeout(() => { if (dirty && !typing()) render(); }, 0); });
 
   // ---------- acciones ----------
-  function addGoal(date, text, projectId) {
+  function addGoal(date, text, projectId, motor, min) {
     const d = getDay(date);
-    d.goals.push({ id: uid(), text: text.slice(0, 200), projectId: projectId || "", done: false });
+    const g = { id: uid(), text: text.slice(0, 200), projectId: projectId || "", done: false };
+    if (MOTORES[motor]) g.motor = motor;
+    if (Number(min) > 0) g.min = Math.min(600, Math.round(Number(min)));
+    d.goals.push(g);
     saveDay(d);
   }
   function codeFor(name) {
@@ -650,10 +772,17 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
       case "proj-del-yes": { const id = S.open; S.open = null; S.confirmDel = false; removeProject(id); toast("Proyecto eliminado."); break; }
       case "plan": planDay(); break;
       case "plan-stop": planCtl?.abort(); break;
-      case "plan-add": { const m = S.plan?.metas[Number(el.dataset.i)]; if (m && !m.added) { m.added = true; addGoal(S.date, m.texto, m.proyectoId); } break; }
+      case "plan-add": { const m = S.plan?.metas[Number(el.dataset.i)]; if (m && !m.added) { m.added = true; addGoal(S.date, m.texto, m.proyectoId, m.motor, m.minutos); } break; }
       case "plan-add-all": {
         const d = getDay(S.date);
-        S.plan.metas.forEach(m => { if (!m.added) { m.added = true; d.goals.push({ id: uid(), text: m.texto.slice(0, 200), projectId: m.proyectoId || "", done: false }); } });
+        S.plan.metas.forEach(m => {
+          if (m.added) return;
+          m.added = true;
+          const g = { id: uid(), text: m.texto.slice(0, 200), projectId: m.proyectoId || "", done: false };
+          if (MOTORES[m.motor]) g.motor = m.motor;
+          if (Number(m.minutos) > 0) g.min = Math.min(600, Math.round(Number(m.minutos)));
+          d.goals.push(g);
+        });
         saveDay(d); break;
       }
     }
@@ -665,7 +794,7 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
     const fd = new FormData(f), text = String(fd.get("text") || "").trim();
     const kind = f.dataset.form;
     const refocus = sel => requestAnimationFrame(() => $(sel)?.focus());
-    if (kind === "goal-add" && text) { addGoal(S.date, text, fd.get("project")); refocus("#goal-text"); }
+    if (kind === "goal-add" && text) { addGoal(S.date, text, fd.get("project"), String(fd.get("motor") || "")); refocus("#goal-text"); }
     if (kind === "log-add" && text) {
       const pid = f.dataset.pid || String(fd.get("project") || "");
       const date = f.dataset.pid ? TODAY() : S.date;
@@ -680,6 +809,13 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
       const p = clone(S.projects.get(S.open));
       p.links = [...(p.links || []), { label: String(fd.get("label") || "").trim().slice(0, 60), url }];
       saveProject(p); refocus("#lk-label");
+    }
+    if (kind === "lim-save") {
+      const L = getLim();
+      ["sesion", "semanal", "opus"].forEach(k => { L[k] = Math.max(0, Math.min(100, Math.round(Number(fd.get(k)) || 0))); });
+      L.higgs = Math.max(0, Math.round(Number(fd.get("higgs")) || 0));
+      saveLim(L); toast("Techos actualizados.");
+      return;
     }
     if (kind === "proj-new") {
       const name = String(fd.get("name") || "").trim(); if (!name) return;
@@ -726,6 +862,7 @@ input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border:2px
       hitosPendientes: (p.milestones || []).filter(m => !m.done).map(m => m.text).slice(0, 6),
       avancesUltimos14Dias: activity(p.id).reduce((s, x) => s + x.c, 0),
     }));
+    const L = getLim();
     const prompt = `Eres JARVIS, el asistente que organiza los proyectos de una persona que construye productos con IA (webs, bots, contenido animado). Hoy es ${date} (${fLong.format(parse(date))}).
 
 Proyectos (JSON):
@@ -734,20 +871,41 @@ ${JSON.stringify(projects).slice(0, 14000)}
 Metas que ya tiene para este día: ${JSON.stringify(day.goals.map(g => g.text))}
 Metas pendientes de días anteriores: ${JSON.stringify(carry ? carry.goals.map(g => g.text) : [])}
 
+Consumo actual de sus límites: sesión de 5 h al ${L.sesion}%, semanal general al ${L.semanal}%, semanal de Opus al ${L.opus}%. Créditos de Higgsfield: ${L.higgs}.
+
 Propón entre 3 y 5 metas para este día. Reglas:
 - Prioriza: 1) destrabar bloqueos, 2) proyectos con lanzamiento cercano o vencido, 3) siguientes pasos de proyectos activos sin avance reciente.
 - Cada meta es una acción concreta que se puede terminar en un día (máximo 90 caracteres), en español y en imperativo.
 - No repitas metas que ya tiene.
 - Si un proyecto importante no tiene fecha de lanzamiento, una de las metas puede ser definirla.
 
+A cada meta asígnale el motor que le corresponde y los minutos que estimás:
+- "fable": refactor multiarchivo, bug difícil de encontrar, arquitectura nueva. Su ventaja crece cuanto más dura es la tarea.
+- "opus": tarea larga de muchas horas donde lo caro es perder el hilo.
+- "sonnet": terminal, git, builds, scripts, componentes y CRUD normales. Le gana a Opus en terminal y cuesta mucho menos.
+- "haiku": renombrar, formatear, buscar y reemplazar, cambios mecánicos.
+- "higgsfield": imagen, video, storyboard, avatares. Gasta créditos y no sesión, así que puede correr en paralelo.
+
+Reglas de ruteo que tenés que respetar:
+- La primera meta del día es la más dura y va en "fable": es cuando el tanque de sesión está lleno.
+- Si el semanal de Opus está por encima del 70%, no propongas "opus" salvo que la tarea sea imposible sin él, y decilo en el porqué.
+- Si la sesión está por encima del 80%, cargá el día hacia "haiku", "sonnet" y "higgsfield".
+- Nunca mandes trabajo mecánico a "opus" ni a "fable".
+
 Responde solo con JSON así:
-{"briefing":"2 o 3 frases directas en español sobre dónde poner el foco hoy y por qué","metas":[{"texto":"...","proyectoId":"id del proyecto o cadena vacía","porque":"una frase corta"}]}`;
+{"briefing":"2 o 3 frases directas en español sobre dónde poner el foco hoy, con qué motor y por qué","metas":[{"texto":"...","proyectoId":"id del proyecto o cadena vacía","motor":"fable|opus|sonnet|haiku|higgsfield","minutos":60,"porque":"una frase corta"}]}`;
     try {
       const r = await sample.json(prompt, { signal: planCtl.signal, cache: false });
       const metas = Array.isArray(r?.metas) ? r.metas : [];
       S.plan = {
         briefing: String(r?.briefing || "").slice(0, 600),
-        metas: metas.slice(0, 6).map(m => ({ texto: String(m?.texto || "").slice(0, 200), proyectoId: S.projects.has(m?.proyectoId) ? m.proyectoId : "", porque: String(m?.porque || "").slice(0, 200), added: false })).filter(m => m.texto),
+        metas: metas.slice(0, 6).map(m => ({
+          texto: String(m?.texto || "").slice(0, 200),
+          proyectoId: S.projects.has(m?.proyectoId) ? m.proyectoId : "",
+          motor: MOTORES[m?.motor] ? m.motor : "",
+          minutos: Number(m?.minutos) > 0 ? Math.min(600, Math.round(Number(m.minutos))) : 0,
+          porque: String(m?.porque || "").slice(0, 200), added: false,
+        })).filter(m => m.texto),
       };
       S.planState = S.plan.metas.length ? "done" : "error";
       if (!S.plan.metas.length) { S.planErr = "JARVIS no devolvió metas. Prueba otra vez."; S.plan = null; }
@@ -785,11 +943,16 @@ Responde solo con JSON así:
         S.days = new Map(snap.docs.map(x => [x.id, x.data()]));
         S.readyD = true; softRender();
       }, onDbErr);
+      db.collection("config").onSnapshot(snap => {
+        const d = snap.docs.find(x => x.id === "limites");
+        S.limites = d ? d.data() : null;
+        S.readyL = true; softRender();
+      }, onDbErr);
     } else {
       S.backend = "local";
       const l = lsLoad();
-      if (l) { (l.projects || []).forEach(p => S.projects.set(p.id, p)); (l.days || []).forEach(x => S.days.set(x.date, x)); }
-      S.readyP = S.readyD = true; render();
+      if (l) { (l.projects || []).forEach(p => S.projects.set(p.id, p)); (l.days || []).forEach(x => S.days.set(x.date, x)); S.limites = l.limites || null; }
+      S.readyP = S.readyD = S.readyL = true; render();
     }
     try { sample = c && c.use ? await c.use("sample") : null; } catch { sample = null; }
     S.canPlan = !!sample; if (!sample) softRender();
