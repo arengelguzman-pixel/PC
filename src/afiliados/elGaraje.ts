@@ -9,7 +9,7 @@ export type Afiliado = {
   logo: string;
   oro: string;              // color de marca
   tamanos: { k: string; t: string; p: number; borde?: number }[];
-  pizzas: { n: string; i: string; no?: boolean }[];
+  pizzas: { n: string; i: string; foto?: string; no?: boolean }[];
   especiales: { n: string; i: string; p: number; foto?: string; no?: boolean }[];
 };
 
