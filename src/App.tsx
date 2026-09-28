@@ -13,15 +13,23 @@ import Intersticial from './components/Intersticial';
 import OwnerPanel from './panel/OwnerPanel';
 import Nuevo from './panel/Nuevo';
 import DemoMenu from './panel/DemoMenu';
+import CartaAfiliado from './panel/CartaAfiliado';
+import { AFILIADOS } from './afiliados/elGaraje';
 
 export default function App() {
   const photoRef = useRef<PhotoTryHandle>(null);
   const ruta = location.pathname.replace(/\/+$/, '');
 
-  // /demo    → el menú (negocio + logo + armado de pedido + cocina)
+  // /m/<token> → menú personalizado de un afiliado (link secreto)
+  // /demo    → el menú demo (negocio + logo + armado de pedido + cocina)
   // /nuevo   → pantalla de alta (identificador, clave y QR)
   // ?r=<local> → carta de un restaurante (cliente + panel del dueño)
   // resto    → landing de venta
+  const mMatch = ruta.match(/\/m\/([a-z0-9-]+)$/i);
+  if (mMatch) {
+    const af = AFILIADOS.find((a) => a.token === mMatch[1]);
+    if (af) return <CartaAfiliado data={af} />;
+  }
   if (ruta.endsWith('/demo')) return <DemoMenu />;
   if (ruta.endsWith('/nuevo')) return <Nuevo />;
   if (new URLSearchParams(location.search).get('r')) return <OwnerPanel />;
