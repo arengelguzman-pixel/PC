@@ -182,7 +182,7 @@ function Cliente({ data, mesa, carrito, total, cantidad, agotado, agregar, cambi
                 <article key={it.slug} className="rounded-2xl overflow-hidden bg-[#161616] border border-white/10 mb-3" style={{ opacity: no ? 0.5 : 1 }}>
                   {it.foto && (
                     <div className="relative aspect-[4/3] bg-[#111]">
-                      <Foto src={it.foto} alt={it.n} />
+                      <Foto src={it.foto} alt={it.n} eager />
                       <span className="absolute top-3 left-3 text-[11px] font-extrabold px-2.5 py-1 rounded-full text-black" style={{ background: 'var(--oro)' }}>ESPECIAL</span>
                       {no && <Agotada />}
                     </div>
@@ -262,9 +262,12 @@ function Cliente({ data, mesa, carrito, total, cantidad, agotado, agregar, cambi
   );
 }
 
-function Foto({ src, alt }: { src: string; alt: string }) {
+function Foto({ src, alt, eager }: { src: string; alt: string; eager?: boolean }) {
+  const ref = useRef<HTMLImageElement>(null);
   const [ok, setOk] = useState(false);
-  return <img src={src} alt={alt} loading="lazy" decoding="async" onLoad={() => setOk(true)} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${ok ? 'opacity-100' : 'opacity-0'}`} />;
+  // si la imagen ya estaba en caché, onLoad no dispara: la marcamos lista al montar
+  useEffect(() => { const el = ref.current; if (el && el.complete && el.naturalWidth > 0) setOk(true); }, [src]);
+  return <img ref={ref} src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" onLoad={() => setOk(true)} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${ok ? 'opacity-100' : 'opacity-0'}`} />;
 }
 function Agotada() {
   return <span className="absolute top-2 left-2 text-[10px] font-extrabold px-2 py-1 rounded-full bg-black/85 text-white tracking-wide">AGOTADA</span>;
