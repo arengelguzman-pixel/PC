@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import LogoMeza from '../../components/LogoMeza';
 import type { Afiliado, Item, Tamano } from '../../afiliados/elGaraje';
 import {
   crearPedido, subirComprobante, misPedidos, recordarPedido, comprimirImagen,
@@ -219,7 +220,7 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
         ))}
 
         <footer className="text-center text-[11px] text-white/35 mt-10 leading-relaxed">
-          Pedidos · {data.telefonoVisible}<br />Menú digital por <b className="text-white/55">MEZA</b>
+          Pedidos · {data.telefonoVisible}<br />Menú digital por <LogoMeza alto={8} color="rgba(255,255,255,.55)" animado={false} className="align-middle ml-1" />
         </footer>
       </main>
 

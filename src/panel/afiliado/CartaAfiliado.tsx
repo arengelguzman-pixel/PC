@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import LogoMeza from '../../components/LogoMeza';
 import type { Afiliado } from '../../afiliados/elGaraje';
 import { conectarSala, claveGuardada, guardarClave, type Pedido } from '../../lib/pedidos';
 import { PuertaClave } from './comunes';
@@ -63,7 +64,7 @@ export default function CartaAfiliado({ data }: { data: Afiliado }) {
     <div className="min-h-screen bg-[#0B0B0B]">
       {/* barra de vistas — nuestra tipografía, discreta */}
       <div className="sticky top-0 z-40 bg-carbon/95 backdrop-blur border-b-2 border-lima px-3 py-2 flex items-center justify-between gap-2">
-        <span className="font-press-start text-[8px] text-lima">MEZA</span>
+        <LogoMeza alto={9} animado={false} />
         {modoStaff
           ? <div className="flex gap-1">{tab('cliente', 'Cliente')}{tab('cocina', 'Cocina', nuevas)}{tab('caja', 'Caja', porConfirmar)}</div>
           : <span className="font-press-start text-[7px] text-crema/40 tracking-wider">{data.nombre.toUpperCase()}</span>}

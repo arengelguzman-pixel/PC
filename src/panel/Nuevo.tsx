@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import LogoMeza from '../components/LogoMeza';
 import QRCode from 'qrcode';
 import { PLATOS } from '../config';
 import { cartaGet, cartaPost, type DatosCarta } from '../lib/carta';
@@ -90,7 +91,7 @@ export default function Nuevo() {
   return (
     <div className="min-h-screen bg-slate-950 text-crema">
       <header className="sticky top-0 z-40 bg-carbon border-b-4 border-lima px-4 py-3 flex items-center justify-between">
-        <a href="/" className="font-press-start text-[11px] text-lima">MEZA</a>
+        <a href="/" aria-label="MEZA"><LogoMeza alto={14} /></a>
         <span className="font-press-start text-[8px] text-crema/60 tracking-widest uppercase">Alta de local</span>
       </header>
 

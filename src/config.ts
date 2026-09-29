@@ -8,7 +8,7 @@ export const ESTUDIO_MEJORAR_URL = 'https://plato-vivo.vercel.app/estudio/?vista
 export const MARCA = {
   nombre: 'MEZA',
   ciudad: 'Montero · Santa Cruz · Bolivia',
-  eslogan: '¿Quieres darle vida a tu comida?',
+  eslogan: 'La mesa que atiende.',
   whatsapp: '', // número destino; vacío = sólo demo
 };
 
@@ -22,47 +22,35 @@ export const VIDEO_HERO = {
 
 // Frases del typewriter del hero (se escriben y borran)
 export const HERO_FRASES = [
-  '¿PLATO SIN VIDA?',
+  '¿TU CARTA SIGUE EN PAPEL?',
   'TU COMIDA YA ES BUENA.',
   'AHORA QUE SE VEA ASÍ.',
 ];
 
-// Manifiesto que sube con el scroll (estilo créditos)
-export const MANIFIESTO = `NO CAMBIAMOS
-TU COMIDA.
-CAMBIAMOS
-LA FOTO.
+// Manifiesto que sube con el scroll (estilo créditos). Corto: se lee entero.
+export const MANIFIESTO = `TU CARTA
+YA NO ES
+UN PAPEL.
 
-LA MISMA PRESA.
-LA MISMA PORCIÓN.
-EL MISMO PLATO.
-OTRA LUZ.
-
----
-
-¿POR QUÉ NOSOTROS?
-1. SUBES UNA FOTO.
-   NOSOTROS EL RESTO.
-2. NO INVENTAMOS
-   TU COMIDA.
-3. TÚ CAMBIAS
-   LOS PRECIOS.
-4. SIRVE CUALQUIER
-   FOTO DE CELULAR.
+ESCANEAN.
+PIDEN.
+LLEGA A LA COCINA.
+SE COBRA POR QR.
 
 ---
 
-TU CARTA EN 3D.
-TUS REDES RESUELTAS.
-SIN APPS.
-SIN DISEÑADOR.
+LA MISMA COMIDA.
+OTRA FOTO.
 
-DALE VIDA
-A TU COMIDA.`;
+---
+
+MEZA.
+LA MESA
+QUE ATIENDE.`;
 
 export const MARQUEE = [
-  'MENÚ EN 3D', 'FOTOS QUE DAN HAMBRE', 'AFICHES CON TU MARCA',
-  'TÚ LO MANEJAS', 'SIN APPS', 'SIN DISEÑADOR',
+  'PIDE DESDE LA MESA', 'COBRO POR QR', 'COCINA EN VIVO',
+  'FOTOS QUE DAN HAMBRE', 'AFICHES CON TU MARCA', 'SIN APPS',
 ];
 
 // Stickers de comida que siguen al cursor (SVG propios, die-cut brutalista).

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { ESTUDIO_URL, HERO_FRASES, MANIFIESTO, MARCA } from '../config';
-import Marquee from './Marquee';
+import { ESTUDIO_URL, HERO_FRASES, MANIFIESTO } from '../config';
+import LogoMeza from './LogoMeza';
 
 // Título que se "desescribe" con el scroll (typewriter del spec).
-const TITULO = HERO_FRASES[0]; // "¿PLATO SIN VIDA?"
+const TITULO = HERO_FRASES[0];
 
 // El fondo (muñeco) lo pone MunecoFondo, fijo detrás de todo. El hero es
 // transparente y solo superpone texto + degradados de legibilidad.
@@ -32,51 +32,49 @@ export default function ScrollHero({ onProbar }: { onProbar: () => void }) {
   const activo = Math.min(p, 0.22) / 0.22;
   const texto = TITULO.slice(0, Math.round((1 - activo) * TITULO.length));
 
-  // manifiesto rodante (0.30 → 1)
+  // manifiesto rodante (0.30 → 1): sube de 100vh a -100vh
   const inicio = 0.30;
   const alpha = p > inicio ? (p - inicio) / (1 - inicio) : 0;
   const manifOpacity = Math.min(1, alpha / 0.05);
-  const manifY = 100 - alpha * 420;
+  const manifY = 100 - alpha * 200;
   const foco = alpha > 0 ? Math.max(0, 1 - Math.abs(manifY - 8) / 95) : 0;
 
   return (
-    <div ref={wrap} className="relative h-[200vh] md:h-[300vh]">
+    <div ref={wrap} className="relative h-[170vh] md:h-[240vh]">
       <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
         {/* Degradados de legibilidad sobre el muñeco (fondo fijo detrás) */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/20 to-black/80" />
         <div className="absolute inset-0 bg-negro" style={{ opacity: foco * 0.6 }} />
 
-        {/* Cinta diagonal */}
-        <Marquee variant="diag" />
-
-        {/* Navegación */}
-        <nav className="absolute top-8 right-6 md:right-14 z-50 flex gap-5 md:gap-9 font-press-start text-[9px] sm:text-[11px] text-white">
-          <a href="#probar" className="hover:text-maiz transition-colors">Probar</a>
+        {/* Logo + navegación */}
+        <a href="/" className="absolute top-7 left-6 md:left-14 z-50" aria-label="MEZA"><LogoMeza alto={22} /></a>
+        <nav className="absolute top-8 right-6 md:right-14 z-50 flex gap-4 md:gap-8 font-press-start text-[8px] sm:text-[11px] text-white">
           <a href="/demo" className="hover:text-maiz transition-colors">Menú</a>
+          <a href="#probar" className="hover:text-maiz transition-colors">Fotos</a>
           <a href="#redes" className="hover:text-maiz transition-colors">Redes</a>
           <a href="#contacto" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); }} className="hover:text-maiz transition-colors">Contacto</a>
-          <a href={ESTUDIO_URL} target="_blank" rel="noopener noreferrer" className="text-carbon bg-maiz px-2.5 py-1.5 hover:bg-lima transition-colors">Estudio IA ▸</a>
+          <a href={ESTUDIO_URL} target="_blank" rel="noopener noreferrer" className="hidden sm:inline text-carbon bg-maiz px-2.5 py-1.5 hover:bg-lima transition-colors">Estudio IA ▸</a>
         </nav>
 
         {/* Título que se desescribe */}
         <div className="absolute inset-0 z-30 pointer-events-none flex flex-col justify-end p-6 md:p-16 pb-24 sm:pb-28">
           <span className="font-press-start text-[9px] sm:text-[11px] text-negro bg-maiz self-start px-3 py-2 tracking-widest mb-5">
-            {MARCA.nombre} ✱ MONTERO 2026
+            MONTERO ✱ 2026 ✱ DEMO GRATIS
           </span>
           <h1 className="font-press-start text-maiz text-2xl sm:text-4xl md:text-6xl lg:text-7xl leading-[1.25] tracking-tight uppercase max-w-4xl" style={{ textShadow: '4px 4px 0 var(--color-rojo)' }}>
             {texto}
             <span className="inline-block w-[0.14em] h-[0.8em] bg-maiz ml-1 align-middle cursor-parp" />
           </h1>
           <p className="mt-6 max-w-md text-crema text-base sm:text-lg font-body">
-            Tu comida ya es buena. Ahora que se vea así — con la foto que ya tienes.
+            Tu cliente escanea, pide desde la mesa y a la cocina le llega al instante. Y tu comida se ve como sabe.
           </p>
           <div className="mt-7 flex flex-col sm:flex-row gap-3 max-w-md pointer-events-auto">
-            <button onClick={onProbar} className="font-press-start text-[10px] sm:text-xs text-crema bg-rojo border-[3px] border-negro py-4 px-6 shadow-[5px_5px_0_var(--color-maiz)] active:translate-y-1 active:shadow-none transition-all uppercase tracking-widest cursor-pointer">
-              📷 Sube tu foto ▸
-            </button>
-            <a href="#menu" className="font-press-start text-[10px] sm:text-xs text-crema border-2 border-crema/60 py-4 px-6 text-center hover:border-maiz hover:text-maiz transition-colors uppercase tracking-widest">
-              Ver el menú
+            <a href="/demo" className="font-press-start text-[10px] sm:text-xs text-crema bg-rojo border-[3px] border-negro py-4 px-6 text-center shadow-[5px_5px_0_var(--color-maiz)] active:translate-y-1 active:shadow-none transition-all uppercase tracking-widest">
+              Probar el menú en vivo ▸
             </a>
+            <button onClick={onProbar} className="font-press-start text-[10px] sm:text-xs text-crema border-2 border-crema/60 py-4 px-6 hover:border-maiz hover:text-maiz transition-colors uppercase tracking-widest cursor-pointer">
+              📷 Sube tu foto
+            </button>
           </div>
         </div>
 
