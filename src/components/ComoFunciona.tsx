@@ -25,7 +25,7 @@ export default function ComoFunciona() {
             <span className="font-press-start text-[8px] text-crema/50 leading-relaxed uppercase line-through">Carta de papel</span>
           </div>
           {EPOCAS.map((e, i) => (
-            <div key={e} className={`border-[3px] p-4 flex flex-col items-center gap-3 text-center ${i === EPOCAS.length - 1 ? 'border-lima bg-lima/10' : 'border-crema/20'}`}>
+            <div key={e} className={`border-[3px] p-4 flex flex-col items-center gap-3 text-center ${i === EPOCAS.length - 1 ? 'border-lima bg-lima/10 col-span-2 sm:col-span-1' : 'border-crema/20'}`}>
               <IconoMeza tam={56} epoca={e} />
               <span className="font-press-start text-[8px] text-crema/80 leading-relaxed uppercase">{NOMBRE_EPOCA[e]}</span>
             </div>

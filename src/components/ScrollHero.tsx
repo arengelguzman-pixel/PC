@@ -47,7 +47,7 @@ export default function ScrollHero({ onProbar }: { onProbar: () => void }) {
         <div className="absolute inset-0 bg-negro" style={{ opacity: foco * 0.6 }} />
 
         {/* Logo + navegación */}
-        <a href="/" className="absolute top-7 left-6 md:left-14 z-50" aria-label="MEZA"><LogoMeza alto={22} /></a>
+        <a href="/" className="absolute top-7 left-6 md:left-14 z-50" aria-label="MEZA"><LogoMeza alto={24} /></a>
         <nav className="absolute top-8 right-6 md:right-14 z-50 flex gap-4 md:gap-8 font-press-start text-[8px] sm:text-[11px] text-white">
           <a href="/demo" className="hover:text-maiz transition-colors">Menú</a>
           <a href="#probar" className="hover:text-maiz transition-colors">Fotos</a>
