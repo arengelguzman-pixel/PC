@@ -13,7 +13,7 @@ import Intersticial from './components/Intersticial';
 import OwnerPanel from './panel/OwnerPanel';
 import Nuevo from './panel/Nuevo';
 import DemoMenu from './panel/DemoMenu';
-import CartaAfiliado from './panel/CartaAfiliado';
+import CartaAfiliado from './panel/afiliado/CartaAfiliado';
 import { AFILIADOS } from './afiliados/elGaraje';
 
 export default function App() {

@@ -1,0 +1,212 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { Afiliado } from '../../afiliados/elGaraje';
+import { confirmarPago, verComprobante, guardarQr, comprimirImagen, ETIQUETA_PAGO, type Pedido } from '../../lib/pedidos';
+import { beep, Conexion } from './comunes';
+
+// Vista de Caja (nuestra tipografía). Confirma o rechaza pagos viendo el
+// comprobante, marca cobros en efectivo y gestiona el QR de cobro del local.
+// El estado (pedidos, qr) llega en vivo por props desde el shell.
+
+const hhmm = (ms: number) => { const d = new Date(ms); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+const esHoy = (ms: number) => new Date(ms).toDateString() === new Date().toDateString();
+const textoError = (r: { causa?: string; msg?: string }) => {
+  const base = r.msg || 'No se pudo completar. Intenta de nuevo.';
+  return r.causa === 'clave_mala' || r.causa === 'sin_clave' ? `${base} Toca "Salir" y vuelve a escribir la clave.` : base;
+};
+const colorPago = (p: Pedido) => p.pago === 'por_confirmar' ? 'bg-maiz text-negro' : p.pago === 'confirmado' ? 'bg-lima text-negro' : p.pago === 'rechazado' ? 'bg-brasa text-crema' : 'bg-crema/25 text-crema';
+
+const BTN = 'font-press-start text-[8px] py-2.5 px-3 border-2 uppercase tracking-wider disabled:opacity-40';
+const BTN_LIMA = `${BTN} text-negro bg-lima border-negro`;
+const BTN_LINEA = `${BTN} text-crema/80 border-crema/30`;
+const BTN_BRASA = `${BTN} text-brasa border-brasa`;
+
+type Modal = { id: string; src: string | null; err: string };
+
+export default function Caja({ data, pedidos, qr, clave, conectado, salir }: {
+  data: Afiliado; pedidos: Pedido[]; qr: string | null; clave: string; conectado: boolean; salir: () => void;
+}) {
+  const [cambios, setCambios] = useState<Record<string, Pedido>>({});   // optimista: gana si es más nuevo que la prop
+  const [cargando, setCargando] = useState('');                          // id del pedido en proceso
+  const [errores, setErrores] = useState<Record<string, string>>({});
+  const [modal, setModal] = useState<Modal | null>(null);
+  const [aviso, setAviso] = useState('');
+  const [qrCargando, setQrCargando] = useState(false);
+  const [qrErr, setQrErr] = useState('');
+  const avisoTimer = useRef(0);
+  const vistos = useRef<Set<string> | null>(null);
+
+  const lista = useMemo(() => pedidos.map((p) => { const c = cambios[p.id]; return c && c.actualizado > p.actualizado ? c : p; }), [pedidos, cambios]);
+  const porConfirmar = lista.filter((p) => p.pago === 'por_confirmar');
+  const efectivo = lista.filter((p) => p.metodo === 'efectivo' && p.pago === 'pendiente' && p.cocina !== 'entregado');
+  const porCobrar = [...porConfirmar, ...efectivo];
+  const cobrados = lista.filter((p) => p.pago === 'confirmado').sort((a, b) => (b.confirmadoEn ?? b.actualizado) - (a.confirmadoEn ?? a.actualizado));
+  const rechazados = lista.filter((p) => p.pago === 'rechazado');
+  const hoy = cobrados.reduce((a, p) => a + (p.confirmadoEn && esHoy(p.confirmadoEn) ? p.total : 0), 0);
+
+  // aviso en vivo: comprobante nuevo → bip + banner 5 s
+  useEffect(() => {
+    const actual = new Set(porConfirmar.map((p) => p.id));
+    if (vistos.current) {
+      const nuevos = porConfirmar.filter((p) => !vistos.current!.has(p.id));
+      if (nuevos.length) {
+        beep();
+        setAviso(`Nuevo comprobante · ${nuevos[0].id} · Bs ${nuevos[0].total}${nuevos.length > 1 ? ` (+${nuevos.length - 1})` : ''}`);
+        clearTimeout(avisoTimer.current);
+        avisoTimer.current = window.setTimeout(() => setAviso(''), 5000);
+      }
+    }
+    vistos.current = actual;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pedidos, cambios]);
+  useEffect(() => () => clearTimeout(avisoTimer.current), []);
+
+  // título del documento con pendientes
+  useEffect(() => {
+    const base = `${data.nombre} · Menú`;
+    document.title = porConfirmar.length ? `(${porConfirmar.length}) por confirmar · ${data.nombre}` : base;
+    return () => { document.title = base; };
+  }, [porConfirmar.length, data.nombre]);
+
+  const aplicar = (p: Pedido) => setCambios((c) => ({ ...c, [p.id]: p }));
+  const setErr = (id: string, msg: string) => setErrores((e) => ({ ...e, [id]: msg }));
+
+  const resolver = async (id: string, estado: 'confirmado' | 'rechazado') => {
+    setCargando(id); setErr(id, '');
+    const r = await confirmarPago(data.local, id, clave, estado);
+    setCargando('');
+    if (!r.ok) { const t = textoError(r); setErr(id, t); setModal((m) => (m && m.id === id ? { ...m, err: t } : m)); return; }
+    aplicar(r.pedido);
+    setModal((m) => (m && m.id === id ? null : m));
+  };
+
+  const abrirComprobante = async (id: string) => {
+    setModal({ id, src: null, err: '' });
+    const r = await verComprobante(data.local, id, clave);
+    setModal((m) => (m && m.id === id ? (r.ok ? { ...m, src: r.comprobante } : { ...m, err: textoError(r) }) : m));
+  };
+
+  const subirQr = async (file: File | undefined) => {
+    if (!file) return;
+    setQrErr(''); setQrCargando(true);
+    try {
+      const dataUrl = await comprimirImagen(file, 900, 0.85);
+      const r = await guardarQr(data.local, clave, dataUrl);
+      if (!r.ok) setQrErr(textoError(r));
+    } catch { setQrErr('No se pudo leer la imagen. Prueba con otra foto o captura.'); }
+    setQrCargando(false);
+  };
+  const quitarQr = async () => {
+    if (!confirm('¿Quitar el QR de cobro? Los clientes no podrán pagar por QR hasta que subas otro.')) return;
+    setQrErr(''); setQrCargando(true);
+    const r = await guardarQr(data.local, clave, null);
+    if (!r.ok) setQrErr(textoError(r));
+    setQrCargando(false);
+  };
+
+  const pedidoModal = modal ? lista.find((p) => p.id === modal.id) : undefined;
+
+  const tarjeta = (p: Pedido) => {
+    const ocupado = cargando === p.id;
+    return (
+      <div key={p.id} className={`border-2 p-3 ${p.pago === 'por_confirmar' ? 'border-maiz animate-[pulse_2s_ease-in-out_2]' : 'border-crema/15'}`}>
+        <div className="flex justify-between items-center gap-2">
+          <span className="font-press-start text-[10px] text-crema">{p.id}{p.mesa ? ` · MESA ${p.mesa}` : ''}</span>
+          <span className="font-mono text-[11px] text-crema/60 tabular-nums">{hhmm(p.creado)}</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          <span className={`font-press-start text-[7px] px-2 py-1 tracking-wider ${p.metodo === 'qr' ? 'bg-azul text-white' : 'bg-crema/25 text-crema'}`}>{p.metodo === 'qr' ? 'QR' : 'EFECTIVO'}</span>
+          <span className={`font-press-start text-[7px] px-2 py-1 tracking-wider ${colorPago(p)}`}>{ETIQUETA_PAGO[p.pago].toUpperCase()}</span>
+        </div>
+        <ul className="mt-2 font-mono text-xs text-crema/85 leading-relaxed">
+          {p.items.map((l) => <li key={l.key}>{l.q}× {l.n}{l.tamT ? ` · ${l.tamT}` : ''}{l.borde ? ' · borde' : ''}</li>)}
+        </ul>
+        {p.nota && <p className="mt-2 text-xs text-maiz italic">“{p.nota}”</p>}
+        <div className="flex justify-between items-center gap-2 mt-3 pt-2 border-t border-crema/10">
+          <span className="font-mono text-maiz text-sm tabular-nums">Bs {p.total}</span>
+          {p.pago === 'por_confirmar' && <button onClick={() => abrirComprobante(p.id)} disabled={ocupado} className={BTN_LIMA}>Ver comprobante ▸</button>}
+          {p.metodo === 'efectivo' && p.pago === 'pendiente' && p.cocina !== 'entregado' && (
+            <button onClick={() => resolver(p.id, 'confirmado')} disabled={ocupado} className={BTN_LIMA}>{ocupado ? 'Guardando…' : 'Cobrado en efectivo ✓'}</button>
+          )}
+          {p.pago === 'confirmado' && p.confirmadoEn && <span className="font-mono text-[11px] text-lima/80 tabular-nums">cobrado {hhmm(p.confirmadoEn)}</span>}
+        </div>
+        {errores[p.id] && <p className="mt-2 text-xs text-brasa">{errores[p.id]}</p>}
+      </div>
+    );
+  };
+
+  const seccion = (titulo: string, items: Pedido[], vacio: string) => (
+    <section className="mt-8">
+      <h2 className="font-press-start text-[9px] text-lima tracking-widest uppercase mb-3">▸ {titulo}{items.length ? ` · ${items.length}` : ''}</h2>
+      {items.length === 0
+        ? <p className="text-crema/40 text-sm font-mono py-6 text-center border-2 border-dashed border-crema/10">{vacio}</p>
+        : <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">{items.map(tarjeta)}</div>}
+    </section>
+  );
+
+  return (
+    <div className="min-h-screen bg-negro text-crema">
+      {aviso && (
+        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[95] w-[94%] max-w-lg bg-maiz text-negro border-[3px] border-negro shadow-[6px_6px_0_var(--color-rojo)] px-4 py-3 font-press-start text-[10px] leading-relaxed tracking-wide animate-pulse">🔔 {aviso}</div>
+      )}
+
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        {/* cabecera */}
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="font-press-start text-[12px] text-maiz uppercase tracking-wide" style={{ textShadow: '2px 2px 0 var(--color-rojo)' }}>Caja · {data.nombre}</h1>
+            <div className="mt-2"><Conexion ok={conectado} /></div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-press-start text-[8px] px-2.5 py-1.5 tracking-wider bg-lima/15 text-lima border-2 border-lima/40">HOY Bs {hoy}</span>
+            <button onClick={salir} className={BTN_LINEA}>Salir</button>
+          </div>
+        </div>
+
+        {seccion('Por cobrar', porCobrar, 'nada por cobrar — los comprobantes y los pedidos en efectivo aparecen aquí')}
+        {seccion('Cobrados', cobrados, 'aún no hay cobros confirmados')}
+        {seccion('Rechazados', rechazados, 'sin pagos rechazados')}
+
+        {/* QR de cobro */}
+        <section className="mt-10">
+          <h2 className="font-press-start text-[9px] text-lima tracking-widest uppercase mb-1">▸ QR de cobro del local</h2>
+          <p className="text-sm text-crema/55 mb-4">Es el QR de tu banco o billetera: el cliente lo escanea para pagar y luego sube el comprobante. Solo se cambia con la clave de personal.</p>
+          <div className="flex flex-col sm:flex-row gap-4 sm:items-start">
+            {qr
+              ? <img src={qr} alt="QR de cobro" className="w-full max-w-[280px] border-[3px] border-crema/20 bg-white" />
+              : <div className="w-full max-w-[280px] aspect-square border-2 border-dashed border-crema/25 grid place-items-center p-6 text-center font-mono text-xs text-crema/40">sin QR — sube la imagen del QR de tu banco o billetera para cobrar por QR</div>}
+            <div className="flex flex-col gap-2">
+              <label className={`${BTN_LIMA} text-center cursor-pointer ${qrCargando ? 'opacity-40 pointer-events-none' : ''}`}>
+                {qrCargando ? 'Guardando…' : qr ? 'Cambiar QR' : 'Subir QR'}
+                <input type="file" accept="image/*" className="hidden" disabled={qrCargando} onChange={(e) => { subirQr(e.target.files?.[0]); e.target.value = ''; }} />
+              </label>
+              {qr && <button onClick={quitarQr} disabled={qrCargando} className={BTN_BRASA}>Quitar</button>}
+              {qrErr && <p className="text-xs text-brasa max-w-[280px]">{qrErr}</p>}
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* modal: comprobante a tamaño completo */}
+      {modal && (
+        <div className="fixed inset-0 z-[90] bg-black/90 flex" onClick={() => setModal(null)}>
+          <div className="relative m-auto w-full max-w-lg h-[100dvh] sm:h-auto sm:max-h-[94dvh] flex flex-col border-[3px] border-lima bg-carbon" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-b-2 border-lima/40">
+              <span className="font-press-start text-[9px] text-crema leading-relaxed">{modal.id}{pedidoModal?.mesa ? ` · MESA ${pedidoModal.mesa}` : ''}{pedidoModal ? ` · Bs ${pedidoModal.total}` : ''}</span>
+              <button onClick={() => setModal(null)} className={`${BTN_LINEA} py-1.5 px-2`}>✕</button>
+            </div>
+            <div className="flex-1 overflow-y-auto bg-negro min-h-[200px]">
+              {modal.src
+                ? <img src={modal.src} alt={`Comprobante ${modal.id}`} className="block w-full h-auto" />
+                : <p className="font-mono text-sm text-crema/40 py-16 text-center px-4">{modal.err || 'cargando comprobante…'}</p>}
+            </div>
+            {modal.err && modal.src && <p className="px-3 pt-2 text-xs text-brasa">{modal.err}</p>}
+            <div className="grid grid-cols-2 gap-2 p-3 border-t-2 border-lima/40" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
+              <button onClick={() => resolver(modal.id, 'confirmado')} disabled={cargando === modal.id || pedidoModal?.pago !== 'por_confirmar'} className={`${BTN_LIMA} py-3.5`}>{cargando === modal.id ? 'Guardando…' : 'Confirmar pago ✓'}</button>
+              <button onClick={() => resolver(modal.id, 'rechazado')} disabled={cargando === modal.id || pedidoModal?.pago !== 'por_confirmar'} className={`${BTN_BRASA} py-3.5`}>Rechazar ✗</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

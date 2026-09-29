@@ -9,6 +9,7 @@ export type Categoria = { k: string; t: string; desc?: string; porTamano: boolea
 
 export type Afiliado = {
   token: string;
+  local: string;            // id estable (no secreto) de la sala en tiempo real
   nombre: string;
   bajada: string;
   ciudad: string;
@@ -24,6 +25,7 @@ const F = '/afiliados/el-garaje/pizzas';
 
 export const elGaraje: Afiliado = {
   token: 'elgaraje-a3f9k2m8x1',
+  local: 'el-garaje',
   nombre: 'El Garaje',
   bajada: 'Pizzería · Al estilo Argentino',
   ciudad: 'Montero',
@@ -73,4 +75,7 @@ export const elGaraje: Afiliado = {
   ],
 };
 
-export const AFILIADOS: Afiliado[] = [elGaraje];
+// Sandbox para demos y pruebas: misma carta, sala separada (no toca el piloto real).
+export const elGarajePrueba: Afiliado = { ...elGaraje, token: 'elgaraje-prueba-x9q4', local: 'el-garaje-test', nombre: 'El Garaje · PRUEBA' };
+
+export const AFILIADOS: Afiliado[] = [elGaraje, elGarajePrueba];

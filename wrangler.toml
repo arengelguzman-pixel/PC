@@ -19,5 +19,15 @@ LIMITE_IP = "40"
 binding = "CARTAS"
 id = "a0383838734a44be8d41f48811505069"
 
+# Sala en tiempo real por local: pedidos, pagos (QR + comprobante), cocina y
+# caja sincronizados por WebSocket. Un Durable Object (SQLite) por local.
+[[durable_objects.bindings]]
+name = "SALA"
+class_name = "Sala"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Sala"]
+
 [observability]
 enabled = true

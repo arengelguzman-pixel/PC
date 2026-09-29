@@ -1,4 +1,5 @@
 function __name(f){return f}
+import { Sala } from './sala.js';
 // src/mejorar.js
 var REGLA = `Re-photograph this dish as a professional food photograph for a restaurant menu.
 
@@ -506,6 +507,12 @@ function igual(a, b) {
 var index_default = {
   async fetch(request, env, ctx) {
     const u = new URL(request.url);
+    // sala en tiempo real de un local (pedidos, pagos, cocina, caja)
+    if (u.pathname.startsWith("/api/sala/")) {
+      const local = String(u.pathname.split("/")[3] || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 40);
+      if (!local) return new Response(JSON.stringify({ ok: false, causa: "sin_local" }), { status: 400, headers: { "Content-Type": "application/json" } });
+      return env.SALA.get(env.SALA.idFromName(local)).fetch(request);
+    }
     if (u.pathname === "/api/mejorar") {
       if (request.method === "OPTIONS") return onRequestOptions();
       if (request.method === "POST") return onRequestPost({ request, env, ctx });
@@ -524,6 +531,7 @@ var index_default = {
   }
 };
 export {
-  index_default as default
+  index_default as default,
+  Sala
 };
 
