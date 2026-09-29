@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useScrollProgress } from '../hooks/useScrollProgress';
 
 // Formulario terminal que aparece deslizando cuando el scroll llega al final
-// (firma del spec, adaptado al contacto de PLATO VIVO).
+// (firma del spec, adaptado al contacto de MEZA).
 export default function FeedbackForm() {
   const p = useScrollProgress();
   const [cerrado, setCerrado] = useState(false);

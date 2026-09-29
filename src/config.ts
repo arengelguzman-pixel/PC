@@ -1,4 +1,4 @@
-// Fuente de verdad del contenido de PLATO VIVO.
+// Fuente de verdad del contenido de MEZA.
 // Copy, menú, comparadores y datos de la máquina de afiches viven aquí.
 
 // Estudio IA (servicio externo de mejora de fotos, alojado en Vercel).
@@ -6,7 +6,7 @@ export const ESTUDIO_URL = 'https://plato-vivo.vercel.app/estudio/';
 export const ESTUDIO_MEJORAR_URL = 'https://plato-vivo.vercel.app/estudio/?vista=mejorar';
 
 export const MARCA = {
-  nombre: 'PLATO VIVO',
+  nombre: 'MEZA',
   ciudad: 'Montero · Santa Cruz · Bolivia',
   eslogan: '¿Quieres darle vida a tu comida?',
   whatsapp: '', // número destino; vacío = sólo demo

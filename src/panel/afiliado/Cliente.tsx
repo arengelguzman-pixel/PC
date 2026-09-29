@@ -219,7 +219,7 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
         ))}
 
         <footer className="text-center text-[11px] text-white/35 mt-10 leading-relaxed">
-          Pedidos · {data.telefonoVisible}<br />Menú digital por <b className="text-white/55">PLATO VIVO</b>
+          Pedidos · {data.telefonoVisible}<br />Menú digital por <b className="text-white/55">MEZA</b>
         </footer>
       </main>
 

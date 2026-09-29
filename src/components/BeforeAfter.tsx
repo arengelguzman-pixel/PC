@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 
 // Comparador antes/después con tirador arrastrable.
 export default function BeforeAfter({
-  antes, despues, etAntes = 'TU FOTO', etDespues = 'CON PLATO VIVO',
+  antes, despues, etAntes = 'TU FOTO', etDespues = 'CON MEZA',
   className = '', small = false,
 }: {
   antes: string; despues: string;

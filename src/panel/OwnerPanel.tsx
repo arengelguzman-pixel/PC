@@ -109,7 +109,7 @@ export default function OwnerPanel() {
     <div className="min-h-screen bg-slate-950 text-crema pb-40">
       {/* barra superior */}
       <header className="sticky top-0 z-40 bg-carbon border-b-4 border-lima px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-        <span className="font-press-start text-[11px] text-lima">PLATO VIVO</span>
+        <span className="font-press-start text-[11px] text-lima">MEZA</span>
         <a href={ESTUDIO_URL} target="_blank" rel="noopener noreferrer" className="font-press-start text-[8px] text-carbon bg-maiz px-2.5 py-2 tracking-wider hover:bg-lima transition-colors order-3 sm:order-none">Estudio IA ▸</a>
         <div className="flex gap-1.5">
           <button onClick={() => setTab('cli')} className={`font-press-start text-[8px] px-3 py-2.5 border-2 tracking-wider ${tab === 'cli' ? 'bg-lima text-carbon border-lima' : 'text-crema/70 border-crema/25'}`}>Lo que ve tu cliente</button>

@@ -1,4 +1,4 @@
-# PLATO VIVO
+# MEZA
 
 Landing única (React + Vite + TypeScript + Tailwind v4) para restaurantes de
 Montero, Santa Cruz. Diseño brutalista/retro-digital: todo el negocio en una sola

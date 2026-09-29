@@ -96,7 +96,7 @@ export default function DemoMenu() {
 
       {/* cabecera + 2 pestañas */}
       <header className="sticky top-0 z-40 bg-carbon border-b-4 border-lima px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-        <a href="/" className="font-press-start text-[11px] text-lima">PLATO VIVO</a>
+        <a href="/" className="font-press-start text-[11px] text-lima">MEZA</a>
         <div className="flex gap-1.5">
           <button onClick={() => setVista('cliente')} className={`font-press-start text-[8px] px-3 py-2.5 border-2 tracking-wider ${vista === 'cliente' ? 'bg-lima text-negro border-lima' : 'text-crema/70 border-crema/25'}`}>Cliente (QR)</button>
           <button onClick={() => setVista('admin')} className={`font-press-start text-[8px] px-3 py-2.5 border-2 tracking-wider ${vista === 'admin' ? 'bg-lima text-negro border-lima' : 'text-crema/70 border-crema/25'}`}>Cocina / Admin{nuevas ? ` · ${nuevas}` : ''}</button>
