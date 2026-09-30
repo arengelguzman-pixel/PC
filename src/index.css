@@ -92,3 +92,9 @@ body { margin: 0; background: var(--color-negro); color: var(--color-crema); fon
 @keyframes carrusel { to { transform: translate3d(-50%, 0, 0); } }
 .animate-carrusel { display: flex; width: max-content; animation: carrusel 26s linear infinite; }
 .animate-carrusel:hover { animation-play-state: paused; }
+
+/* ---- capas del avatar: a sangre en celular; en escritorio, columna 9:16 a la derecha fundida con el rojo ---- */
+.capa-avatar { position: absolute; inset: 0; }
+@media (min-width: 768px) {
+  .capa-avatar { left: auto; width: calc(100vh * 9 / 16); -webkit-mask-image: linear-gradient(to right, transparent, #000 24%); mask-image: linear-gradient(to right, transparent, #000 24%); }
+}

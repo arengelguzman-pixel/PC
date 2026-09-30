@@ -96,10 +96,10 @@ export default function MunecoFondo() {
     <video ref={ref} muted playsInline preload="auto" poster={poster} className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={{ opacity: visible ? 1 : 0, willChange: 'opacity' }} />
   );
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#B3100D]" style={{ zIndex: 0, transform: 'translateZ(0)', contain: 'strict' }}>
-      <div ref={wC} className="absolute inset-0" style={{ opacity: 0 }}>{video(c1, true)}{video(c2, false)}</div>
-      <div ref={wB} className="absolute inset-0" style={{ opacity: 0 }}>{video(b, true)}</div>
-      <div ref={wA} className="absolute inset-0" style={{ opacity: 1, willChange: 'opacity' }}>{video(a1, true, '/video/avatar-antes.jpg')}{video(a2, false)}</div>
+    <div className="fixed inset-0 overflow-hidden"  style={{ zIndex: 0, transform: 'translateZ(0)', contain: 'strict', background: '#A00C0D' }}>
+      <div ref={wC} className="capa-avatar" style={{ opacity: 0 }}>{video(c1, true)}{video(c2, false)}</div>
+      <div ref={wB} className="capa-avatar" style={{ opacity: 0 }}>{video(b, true)}</div>
+      <div ref={wA} className="capa-avatar" style={{ opacity: 1, willChange: 'opacity' }}>{video(a1, true, '/video/avatar-antes.jpg')}{video(a2, false)}</div>
     </div>
   );
 }
