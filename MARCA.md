@@ -14,7 +14,7 @@ La **Z es una mesa**: tapa arriba, pata en diagonal, base abajo. Y esa mesa camb
 | Holograma | degradado lima→cian con cortes | Cocina y caja en vivo. |
 | 3D | mesa isométrica | La mesa que atiende: sale de la pantalla, anota, organiza, lleva la comida. |
 
-**La rúbrica de la marca es el isotipo: la Z-mesa.** El nombre no es un logotipo fijo: se escribe en la tipografía de la landing (Press Start 2P, lima con sombra píxel roja) y puede cambiar; la Z es lo que se queda. En pantalla la Z **recorre las cuatro épocas con un glitch** entre una y otra; en papel (tarjetas, stickers) va la Z píxel fija.
+**La rúbrica de la marca es el isotipo: la Z-mesa.** El nombre se escribe en la tipografía de la landing (Press Start 2P, lima con sombra píxel roja) y **la Z del medio es el isotipo** (M E [Z] A); nunca el isotipo antes de la palabra. El nombre puede cambiar; la Z es lo que se queda. Sin ubicación en la marca (no hay oficina; Montero es solo piloto). En pantalla la Z **recorre las cuatro épocas con un glitch** entre una y otra; en papel (tarjetas, stickers) va la Z píxel fija.
 
 **Eslogan:** *La mesa que atiende.*
 **Promesa:** tu cliente escanea, pide desde la mesa y a la cocina le llega al instante.
@@ -48,6 +48,11 @@ Tarjetas QR de mesa (diseño MEZA, sin marca del local): `npx tsx scripts/qr-tar
 - Mayúsculas píxel para las frases fuertes (máx. 4 líneas). Minúscula normal para explicar.
 - Siempre hay algo que probar gratis. Nunca cerramos con "contáctanos"; cerramos con "pruébalo".
 - Frases de marca: *La mesa que atiende.* · *Tu carta ya no es un papel.* · *La misma comida, otra foto.* · *Escanean. Piden. Llega a la cocina.*
+
+## Avatar (mascota de ZETA, en definición)
+
+Un solo personaje para todas las apps de ZETA (MEZA, facturación, abogados, asistente), que se "disfraza" según el producto. Sin rostro: metáfora de los negocios que aún no tienen forma digital; en video se cuenta como confusión → solución, nunca burlándose del cliente. No copiar al encapuchado de motionsites. Fondo rojo, ropa negra, acentos lima.
+Propuestas (ChatGPT, 30-sep-2026, en `entregas/marca/avatar/`): 1 · VISOR Z (la cara es el logo) · 2 · MANIQUÍ articulado (se viste de cada app) · 3 · CABEZA DE PANTALLA (la pantalla muestra su estado). Pendiente: elección de Antonio y clip oficial (≤10 s, motor fluido, ≤50 créditos).
 
 ## Videos
 
