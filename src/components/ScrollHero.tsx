@@ -76,10 +76,12 @@ export default function ScrollHero({ onProbar }: { onProbar: () => void }) {
           </div>
         </div>
 
-        {/* Manifiesto rodante */}
-        <div className="absolute top-0 left-0 w-full md:w-[72%] h-screen z-20 pointer-events-none flex flex-col justify-start p-6 md:p-16 pt-[12vh]" style={{ opacity: manifOpacity, transform: `translateY(${manifY}vh)` }}>
-          <div className="font-press-start text-maiz text-[18px] sm:text-[24px] md:text-[30px] leading-[1.4] tracking-tight uppercase whitespace-pre-line" style={{ textShadow: '3px 3px 0 var(--color-rojo)' }}>
-            {MANIFIESTO}
+        {/* Manifiesto rodante (se desvanece antes de tocar el menú de arriba) */}
+        <div className="absolute inset-0 z-20 pointer-events-none" style={{ maskImage: 'linear-gradient(to bottom, transparent 0, #000 16vh)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0, #000 16vh)' }}>
+          <div className="absolute top-0 left-0 w-full md:w-[72%] h-screen flex flex-col justify-start p-6 md:p-16 pt-[12vh]" style={{ opacity: manifOpacity, transform: `translateY(${manifY}vh)` }}>
+            <div className="font-press-start text-maiz text-[18px] sm:text-[24px] md:text-[30px] leading-[1.4] tracking-tight uppercase whitespace-pre-line" style={{ textShadow: '3px 3px 0 var(--color-rojo)' }}>
+              {MANIFIESTO}
+            </div>
           </div>
         </div>
 
