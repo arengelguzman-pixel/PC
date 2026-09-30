@@ -8,8 +8,8 @@ import Reveal from './Reveal';
 export default function FotosCarrusel({ onSubir }: { onSubir: () => void }) {
   const tarjeta = (par: { antes: string; despues: string }, k: string) => (
     <div key={k} className="relative w-[210px] sm:w-[250px] aspect-square shrink-0 border-[3px] border-negro overflow-hidden bg-black">
-      <img src={par.antes} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
-      <img src={par.despues} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover ba-clip" style={{ ['--x' as string]: '50%' }} />
+      <img src={par.antes} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <img src={par.despues} alt="" className="absolute inset-0 w-full h-full object-cover ba-clip" style={{ ['--x' as string]: '50%' }} />
       <span className="absolute top-0 bottom-0 left-1/2 w-1 bg-lima" />
       <span className="absolute bottom-2 left-2 font-press-start text-[7px] px-2 py-1 tracking-widest bg-carbon text-crema">ANTES</span>
       <span className="absolute bottom-2 right-2 font-press-start text-[7px] px-2 py-1 tracking-widest bg-lima text-carbon">MEZA</span>
