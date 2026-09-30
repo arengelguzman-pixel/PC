@@ -49,10 +49,12 @@ Tarjetas QR de mesa (diseño MEZA, sin marca del local): `npx tsx scripts/qr-tar
 - Siempre hay algo que probar gratis. Nunca cerramos con "contáctanos"; cerramos con "pruébalo".
 - Frases de marca: *La mesa que atiende.* · *Tu carta ya no es un papel.* · *La misma comida, otra foto.* · *Escanean. Piden. Llega a la cocina.*
 
-## Videos (ideas para producir)
+## Videos
 
-1. **Evolución de la Z** (5 s, reel/loop): papel → píxel → LED → holograma → 3D, con glitch y el sonido de un ticket de comanda al final.
-2. **La mesa que atiende** (15–20 s): una mesa real; la tapa se dobla y se vuelve pantalla, empieza a anotar el pedido sola; de la pantalla sale un pequeño agente (la Z en 3D) que lleva el plato a la mesa y vuelve a la cocina. Cierre: logo + *La mesa que atiende.*
-3. **Antes / después** (10 s): la carta de papel manchada → el celular con el menú; la foto de celular → la foto MEZA. Mismo plato, otra foto.
+Todo el contenido de MEZA es animado (clips 3D o video comercial); las imágenes fijas van solo en la landing.
 
-Motores: Nano Banana para los cuadros clave (identidad de la Z), video en Higgsfield/Seedance a partir de esos cuadros.
+1. **Evolución de la Z** — hecho sin IA: `npx tsx scripts/marca-clip.ts` → `entregas/marca/meza-logo-{9x16,1x1}.mp4` + gif (píxel → LED → holograma → 3D con glitch, cierre con el eslogan).
+2. **La mesa que atiende** — cuadros clave en `entregas/marca/cuadros/` (k1 mesa con QR → k2 la tapa se vuelve pantalla → k3 sale el robot Z con la pizza → k4 atiende), generados con Nano Banana 2 (1.5 créditos c/u) usando el cuadro anterior como referencia; el personaje es `robot-z.png`. Video con Seedance 2.0 Mini (5 créditos por clip de 5 s, cuadro inicial + final) y unión con `python scripts/marca-mesa.py <salida> <clips…> entregas/marca/meza-logo-9x16.mp4`.
+3. **Antes / después** (10 s): la carta de papel manchada → el celular con el menú; la foto de celular → la foto MEZA. Mismo plato, otra foto. (Pendiente.)
+
+Costos reales por MCP (sep-2026): GPT Image 2 alta 3.5 créditos, Nano Banana 2 1.5, Seedance 2.0 Mini 5 s 720p 5, Kling 3.0 Turbo 7.5, Veo 3.1 Lite 9. Renders GPT del isotipo en `entregas/marca/isotipo-gpt/`.
