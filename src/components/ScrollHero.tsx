@@ -40,7 +40,7 @@ export default function ScrollHero({ onProbar }: { onProbar: () => void }) {
   const foco = alpha > 0 ? Math.max(0, 1 - Math.abs(manifY - 8) / 95) : 0;
 
   return (
-    <div ref={wrap} className="relative h-[170vh] md:h-[240vh]">
+    <div ref={wrap} data-hero className="relative h-[170vh] md:h-[240vh]">
       <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
         {/* Degradados de legibilidad sobre el muñeco (fondo fijo detrás) */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/20 to-black/80" />

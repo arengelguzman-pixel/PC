@@ -17,7 +17,12 @@ function usarEpoca(animado: boolean, fija: EpocaZ | undefined, cada: number) {
     }, cada);
     return () => { clearInterval(t); clearTimeout(t2); };
   }, [animado, fija, cada]);
-  return { epoca: fija ?? EPOCAS[i], prev };
+  const saltar = () => {
+    if (fija) return;
+    setI((v) => { setPrev(EPOCAS[v]); return (v + 1) % EPOCAS.length; });
+    window.setTimeout(() => setPrev(null), 380);
+  };
+  return { epoca: fija ?? EPOCAS[i], prev, saltar };
 }
 
 type BaseProps = { epoca?: EpocaZ; animado?: boolean; color?: string; className?: string; cada?: number };
@@ -25,12 +30,12 @@ type BaseProps = { epoca?: EpocaZ; animado?: boolean; color?: string; className?
 // La Z-mesa sola (sin fondo). `tam` es la altura de la caja (la Z ocupa 7/8).
 export function Isotipo({ tam = 28, epoca: fija, animado = true, color = COLOR.lima, className = '', cada = 2600, style }: BaseProps & { tam?: number; style?: CSSProperties }) {
   const id = useId().replace(/[^a-z0-9]/gi, '');
-  const { epoca, prev } = usarEpoca(animado, fija, cada);
+  const { epoca, prev, saltar } = usarEpoca(animado, fija, cada);
   const capa = (ep: EpocaZ, cls: string) => (
     <span key={ep + cls} className={`logo-capa absolute inset-0 ${cls}`} dangerouslySetInnerHTML={{ __html: svgIsotipo({ color, epoca: ep, id: id + ep }) }} />
   );
   return (
-    <span className={`relative inline-block shrink-0 ${className}`} style={{ width: tam * 0.75, height: tam, ...style }} aria-hidden="true">
+    <span className={`relative inline-block shrink-0 ${className}`} style={{ width: tam * 0.75, height: tam, ...style }} aria-hidden="true" onMouseEnter={saltar}>
       {prev ? [capa(prev, 'logo-gl-a'), capa(epoca, 'logo-gl-b')] : capa(epoca, '')}
     </span>
   );

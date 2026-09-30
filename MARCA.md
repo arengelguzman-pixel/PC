@@ -52,7 +52,10 @@ Tarjetas QR de mesa (diseño MEZA, sin marca del local): `npx tsx scripts/qr-tar
 ## Avatar (mascota de ZETA, en definición)
 
 Un solo personaje para todas las apps de ZETA (MEZA, facturación, abogados, asistente), que se "disfraza" según el producto. Sin rostro: metáfora de los negocios que aún no tienen forma digital; en video se cuenta como confusión → solución, nunca burlándose del cliente. No copiar al encapuchado de motionsites. Fondo rojo, ropa negra, acentos lima.
-Propuestas (ChatGPT, 30-sep-2026, en `entregas/marca/avatar/`): 1 · VISOR Z (la cara es el logo) · 2 · MANIQUÍ articulado (se viste de cada app) · 3 · CABEZA DE PANTALLA (la pantalla muestra su estado). Pendiente: elección de Antonio y clip oficial (≤10 s, motor fluido, ≤50 créditos).
+**Elegido: VISOR Z** (30-sep-2026): humanoide esbelto, casco-visor negro brillante sin rostro, cuello tortuga y guantes negros; en el visor vive la Z píxel lima (apagada = sin identidad todavía, encendida = con MEZA). Se viste según el producto (para MEZA: delantal). Cuadros clave en `entregas/marca/avatar/` (`ka-antes.png` Z apagada con celular y delantal gris viejo; `kc-despues.png` Z encendida, delantal negro, bandeja con tarjeta lima y cable lima enchufado en la nuca).
+
+**Hero de la landing (tres videos, Kling 3.0 pro 1080p, en `public/video/`):** `antes` loop (confundido con el celular) → `cambio` una sola vez (tira el celular, se saca el delantal viejo, se enchufa, la Z se enciende, se pone el delantal negro) → `despues` loop (seguro). El scroll no pausa nada: los loops corren siempre y el scroll solo decide qué capa se ve (`src/components/MunecoFondo.tsx`). Preparar clips con `python scripts/hero-video.py`. Kling 3.0 en 4K cuesta 60 créditos por 10 s (vs 17.5 en pro 1080p).
+Otras propuestas descartadas: 2 · MANIQUÍ, 3 · CABEZA DE PANTALLA.
 
 ## Videos
 

@@ -11,12 +11,14 @@ export const MARCA = {
   whatsapp: '', // número destino; vacío = sólo demo
 };
 
-// Video de fondo del hero: el muñeco encapuchado que hace las transiciones
-// (streams HLS del diseño de referencia). Cambiar estas URLs por las propias
-// cuando estén listas — el resto del hero no cambia.
+// Video de fondo del hero: el avatar (Visor Z) en tres estados. MP4 propios.
+//   antes   → loop, Z apagada, confundido con el celular
+//   cambio  → una sola vez: tira el celular, se cambia, se enchufa, la Z se enciende
+//   despues → loop, Z encendida, seguro
 export const VIDEO_HERO = {
-  uno: 'https://stream.mux.com/W2NRcV6MrewS7QyWWqAWZvJR9jrnPU5rxymlPg01gRzk.m3u8',
-  dos: 'https://stream.mux.com/aypDi1exkKgYKEbWme9Csi47zxIim0101hw3ghmSzQIyw.m3u8',
+  antes: '/video/avatar-antes.mp4',
+  cambio: '/video/avatar-cambio.mp4',
+  despues: '/video/avatar-despues.mp4',
 };
 
 // Frases del typewriter del hero (se escriben y borran)
