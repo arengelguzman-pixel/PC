@@ -1,9 +1,9 @@
 import { useEffect, useId, useState } from 'react';
-import { COLOR, EPOCAS, type EpocaZ, svgIcono, svgWordmark } from '../marca/meza';
+import { COLOR, EPOCAS, type EpocaZ, svgIcono, svgIsotipo } from '../marca/meza';
 
-// Wordmark MEZA. Si está animado, la Z recorre sus cuatro épocas
+// Firma de MEZA: el isotipo (la Z-mesa) + el nombre en la tipografía de la
+// landing (Press Start 2P). Si está animado, la Z recorre sus cuatro épocas
 // (píxel → LED → holograma → 3D) con un glitch corto entre una y otra.
-type Props = { alto?: number; color?: string; animado?: boolean; epoca?: EpocaZ; byZeta?: boolean; className?: string; cada?: number };
 
 function usarEpoca(animado: boolean, fija: EpocaZ | undefined, cada: number) {
   const [i, setI] = useState(0);
@@ -20,25 +20,39 @@ function usarEpoca(animado: boolean, fija: EpocaZ | undefined, cada: number) {
   return { epoca: fija ?? EPOCAS[i], prev };
 }
 
-export default function LogoMeza({ alto = 28, color = COLOR.lima, animado = true, epoca: fija, byZeta = false, className = '', cada = 2600 }: Props) {
+type BaseProps = { epoca?: EpocaZ; animado?: boolean; color?: string; className?: string; cada?: number };
+
+// La Z-mesa sola (sin fondo). `tam` es la altura.
+export function Isotipo({ tam = 28, epoca: fija, animado = true, color = COLOR.lima, className = '', cada = 2600 }: BaseProps & { tam?: number }) {
   const id = useId().replace(/[^a-z0-9]/gi, '');
   const { epoca, prev } = usarEpoca(animado, fija, cada);
-  const ancho = alto * (24 / 9);
   const capa = (ep: EpocaZ, cls: string) => (
-    <span key={ep + cls} className={`logo-capa absolute inset-0 ${cls}`} dangerouslySetInnerHTML={{ __html: svgWordmark({ color, epoca: ep, id: id + ep }) }} />
+    <span key={ep + cls} className={`logo-capa absolute inset-0 ${cls}`} dangerouslySetInnerHTML={{ __html: svgIsotipo({ color, epoca: ep, id: id + ep }) }} />
   );
   return (
-    <span className={`inline-flex flex-col items-end leading-none ${className}`} aria-label="MEZA">
-      <span className="relative block" style={{ width: ancho, height: alto }}>
-        {prev ? [capa(prev, 'logo-gl-a'), capa(epoca, 'logo-gl-b')] : capa(epoca, '')}
-      </span>
-      {byZeta && <span className="font-press-start mt-[0.35em]" style={{ fontSize: Math.max(7, alto * 0.28), color, opacity: 0.85 }}>by ZETA</span>}
+    <span className={`relative inline-block shrink-0 ${className}`} style={{ width: tam * 0.75, height: tam }} aria-label="MEZA">
+      {prev ? [capa(prev, 'logo-gl-a'), capa(epoca, 'logo-gl-b')] : capa(epoca, '')}
     </span>
   );
 }
 
-// Ícono cuadrado (app / favicon / crédito pequeño), con una época fija o animada.
-export function IconoMeza({ tam = 40, epoca: fija, animado = false, color = COLOR.lima, fondo = COLOR.negro as string | null, className = '', cada = 2600 }: { tam?: number; epoca?: EpocaZ; animado?: boolean; color?: string; fondo?: string | null; className?: string; cada?: number }) {
+// Isotipo + "MEZA" en Press Start 2P. `alto` es la altura de la Z; el texto va proporcional.
+export default function LogoMeza({ alto = 28, color = COLOR.lima, animado = true, epoca, byZeta = false, sombra = true, className = '', cada = 2600 }: BaseProps & { alto?: number; byZeta?: boolean; sombra?: boolean }) {
+  const fs = Math.round(alto * 0.6);
+  const s = Math.max(1, Math.round(fs * 0.12));
+  return (
+    <span className={`inline-flex flex-col items-end leading-none ${className}`} aria-label="MEZA">
+      <span className="inline-flex items-center" style={{ gap: fs * 0.45 }}>
+        <Isotipo tam={alto} epoca={epoca} animado={animado} color={color} cada={cada} />
+        <span className="font-press-start" style={{ fontSize: fs, color, textShadow: sombra ? `${s}px ${s}px 0 var(--color-rojo)` : undefined }}>MEZA</span>
+      </span>
+      {byZeta && <span className="font-press-start" style={{ fontSize: Math.max(7, Math.round(fs * 0.42)), color, opacity: 0.8, marginTop: fs * 0.55 }}>by ZETA</span>}
+    </span>
+  );
+}
+
+// Ícono cuadrado (app / favicon), con una época fija o animada.
+export function IconoMeza({ tam = 40, epoca: fija, animado = false, color = COLOR.lima, fondo = COLOR.negro as string | null, className = '', cada = 2600 }: BaseProps & { tam?: number; fondo?: string | null }) {
   const id = useId().replace(/[^a-z0-9]/gi, '');
   const { epoca, prev } = usarEpoca(animado, fija, cada);
   const capa = (ep: EpocaZ, cls: string) => (

@@ -47,7 +47,7 @@ export default function ScrollHero({ onProbar }: { onProbar: () => void }) {
         <div className="absolute inset-0 bg-negro" style={{ opacity: foco * 0.6 }} />
 
         {/* Logo + navegación */}
-        <a href="/" className="absolute top-7 left-6 md:left-14 z-50" aria-label="MEZA"><LogoMeza alto={24} /></a>
+        <a href="/" className="absolute top-6 left-6 md:left-14 z-50" aria-label="MEZA"><LogoMeza alto={30} /></a>
         <nav className="absolute top-8 right-6 md:right-14 z-50 flex gap-4 md:gap-8 font-press-start text-[8px] sm:text-[11px] text-white">
           <a href="/demo" className="hover:text-maiz transition-colors">Menú</a>
           <a href="#probar" className="hover:text-maiz transition-colors">Fotos</a>
@@ -57,10 +57,8 @@ export default function ScrollHero({ onProbar }: { onProbar: () => void }) {
         </nav>
 
         {/* Título que se desescribe */}
-        <div className="absolute inset-0 z-30 pointer-events-none flex flex-col justify-end p-6 md:p-16 pb-24 sm:pb-28">
-          <span className="font-press-start text-[9px] sm:text-[11px] text-negro bg-maiz self-start px-3 py-2 tracking-widest mb-5">
-            MONTERO ✱ 2026 ✱ DEMO GRATIS
-          </span>
+        <div className="absolute inset-0 z-30 pointer-events-none flex flex-col justify-start pt-24 sm:pt-28 px-6 md:px-16 pb-24 sm:pb-28">
+          <div className="mt-auto">
           <h1 className="font-press-start text-maiz text-2xl sm:text-4xl md:text-6xl lg:text-7xl leading-[1.25] tracking-tight uppercase max-w-4xl" style={{ textShadow: '4px 4px 0 var(--color-rojo)' }}>
             {texto}
             <span className="inline-block w-[0.14em] h-[0.8em] bg-maiz ml-1 align-middle cursor-parp" />
@@ -75,6 +73,7 @@ export default function ScrollHero({ onProbar }: { onProbar: () => void }) {
             <button onClick={onProbar} className="font-press-start text-[10px] sm:text-xs text-crema border-2 border-crema/60 py-4 px-6 hover:border-maiz hover:text-maiz transition-colors uppercase tracking-widest cursor-pointer">
               📷 Sube tu foto
             </button>
+          </div>
           </div>
         </div>
 

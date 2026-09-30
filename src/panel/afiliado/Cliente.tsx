@@ -220,7 +220,7 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
         ))}
 
         <footer className="text-center text-[11px] text-white/35 mt-10 leading-relaxed">
-          Pedidos · {data.telefonoVisible}<br />Menú digital por <LogoMeza alto={8} color="rgba(255,255,255,.55)" animado={false} className="align-middle ml-1" />
+          Pedidos · {data.telefonoVisible}<br />Menú digital por <LogoMeza alto={10} color="rgba(255,255,255,.6)" animado={false} sombra={false} className="align-middle ml-1" />
         </footer>
       </main>
 

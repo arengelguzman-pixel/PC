@@ -14,22 +14,24 @@ La **Z es una mesa**: tapa arriba, pata en diagonal, base abajo. Y esa mesa camb
 | Holograma | degradado lima→cian con cortes | Cocina y caja en vivo. |
 | 3D | mesa isométrica | La mesa que atiende: sale de la pantalla, anota, organiza, lleva la comida. |
 
-El logo **base es el píxel** (va con la tipografía de la app). En pantalla la Z **recorre las cuatro épocas con un glitch** entre una y otra; en papel se usa la Z píxel fija.
+**La rúbrica de la marca es el isotipo: la Z-mesa.** El nombre no es un logotipo fijo: se escribe en la tipografía de la landing (Press Start 2P, lima con sombra píxel roja) y puede cambiar; la Z es lo que se queda. En pantalla la Z **recorre las cuatro épocas con un glitch** entre una y otra; en papel (tarjetas, stickers) va la Z píxel fija.
 
 **Eslogan:** *La mesa que atiende.*
 **Promesa:** tu cliente escanea, pide desde la mesa y a la cocina le llega al instante.
 
 ## Activos (`public/meza/`)
 
-Todo sale de una sola fuente: `src/marca/meza.ts` (grilla de píxeles + las 4 Z). Regenerar con `npx tsx scripts/marca-meza.ts`.
+Todo sale de una sola fuente: `src/marca/meza.ts` (grilla de píxeles + las 4 Z). Regenerar con `npx tsx scripts/marca-meza.ts` (borra y rehace la carpeta).
 
-- `logo.svg` / `logo.png` — wordmark lima, fondo transparente (para fondos oscuros).
-- `logo-negro.*`, `logo-crema.svg` — para fondos claros / sobre foto.
-- `lockup.png`, `lockup-negro.png` — wordmark + "by ZETA".
-- `logo-{pixel,led,holo,iso}.png` — el wordmark en cada época (para reels y presentaciones).
+- `isotipo-{pixel,led,holo,iso}.{svg,png}` — la Z sola, fondo transparente (768×1024). `isotipo-negro.svg` para fondos claros.
+- `lockup.png` / `lockup-negro.png` / `lockup-byzeta.png` — isotipo + MEZA (firma completa), transparente.
+- `perfil-{pixel,led,holo,iso}.png` — foto de perfil para redes (1080×1080, negro a sangre). Usar **perfil-pixel** por defecto; las otras para campañas.
+- `portada-facebook.png` (1640×624) y `historia.png` (1080×1920) — portada y una historia de marca.
 - `icono-{pixel,led,holo,iso}.{svg,png}` — ícono de app (1024), `icono-512.png`, `icono-180.png` (iOS), `/favicon.svg`.
+- `wordmark-pixel.svg` — el MEZA en píxeles (alternativo, no es el logo principal).
 
-En la app: `<LogoMeza alto={28} />` (animado) y `<IconoMeza epoca="iso" />` en `src/components/LogoMeza.tsx`.
+En la app: `<LogoMeza alto={28} />` (isotipo animado + MEZA), `<Isotipo tam={40} />`, `<IconoMeza epoca="iso" />` en `src/components/LogoMeza.tsx`.
+Tarjetas QR de mesa (diseño MEZA, sin marca del local): `npx tsx scripts/qr-tarjetas.ts <qrDir> <outDir> <n>`.
 
 ## Colores y tipografía
 

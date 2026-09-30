@@ -63,7 +63,7 @@ export default function App() {
 
         <footer id="contacto" className="bg-negro/60 border-t-4 border-maiz py-14 px-6">
           <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-            <LogoMeza alto={40} byZeta />
+            <LogoMeza alto={48} byZeta />
             <div className="text-center md:text-right">
               <p className="font-press-start text-[9px] text-maiz uppercase tracking-wider">{MARCA.eslogan}</p>
               <p className="text-crema/50 text-sm mt-3">{MARCA.ciudad}</p>

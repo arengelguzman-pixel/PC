@@ -61,7 +61,13 @@ export function epocaZ(epoca: EpocaZ, color = COLOR.lima, id = 'mz', margenLed =
   return zPixel(color);
 }
 
-// ---- wordmark MEZA (viewBox con 1 celda de aire: 24 × 9) ----
+// ---- isotipo: la Z-mesa sola, ajustada (media celda de aire: 6 × 8) ----
+// Es la rúbrica de la marca. El nombre se escribe aparte, en Press Start 2P.
+export function svgIsotipo({ color = COLOR.lima, epoca = 'pixel' as EpocaZ, id = 'mzs' } = {}): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.5 -0.5 6 8" role="img" aria-label="MEZA">${epocaZ(epoca, color, id)}</svg>`;
+}
+
+// ---- wordmark píxel MEZA (alternativo; viewBox con 1 celda de aire: 24 × 9) ----
 export function svgWordmark({ color = COLOR.lima, epoca = 'pixel' as EpocaZ, fondo = null as string | null, id = 'mz' } = {}): string {
   const letras = LETRAS.map(([g, x]) => rects(g, x)).join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 ${ANCHO + 2} ${ALTO + 2}" role="img" aria-label="MEZA">` +
