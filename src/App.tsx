@@ -4,7 +4,7 @@ import Marquee from './components/Marquee';
 import MouseTrail from './components/MouseTrail';
 import ScrollHero from './components/ScrollHero';
 import ComoFunciona from './components/ComoFunciona';
-import FotosCarrusel from './components/FotosCarrusel';
+import FotosAnillo from './components/FotosAnillo';
 import PhotoTry, { type PhotoTryHandle } from './components/PhotoTry';
 import FeedbackForm from './components/FeedbackForm';
 import Reveal from './components/Reveal';
@@ -48,7 +48,7 @@ export default function App() {
         <Marquee variant="band" />
         <ComoFunciona />
         <Intersticial frase={'TU CARTA\nYA NO ES UN PAPEL.'} />
-        <FotosCarrusel onSubir={abrirFoto} />
+        <FotosAnillo onSubir={abrirFoto} />
 
         <section id="contacto" className="bg-negro/60 border-t-4 border-maiz py-16 md:py-20 px-6">
           <Reveal className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center">

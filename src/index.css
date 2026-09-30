@@ -93,8 +93,13 @@ body { margin: 0; background: var(--color-negro); color: var(--color-crema); fon
 .animate-carrusel { display: flex; width: max-content; animation: carrusel 26s linear infinite; }
 .animate-carrusel:hover { animation-play-state: paused; }
 
-/* ---- capas del avatar: a sangre en celular; en escritorio, columna 9:16 a la derecha fundida con el rojo ---- */
-.capa-avatar { position: absolute; inset: 0; }
-@media (min-width: 768px) {
-  .capa-avatar { left: auto; width: calc(100vh * 9 / 16); -webkit-mask-image: linear-gradient(to right, transparent, #000 24%); mask-image: linear-gradient(to right, transparent, #000 24%); }
-}
+/* ---- capas del avatar: a sangre, detrás de los textos. En pantallas anchas el encuadre
+   se ancla arriba (cabeza y torso, como el hero original); en vertical se ve entero. ---- */
+.capa-avatar { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; pointer-events: none; }
+@media (orientation: landscape) and (min-width: 768px) { .capa-avatar { object-position: 50% 9%; } }
+
+/* ---- anillo 3D de fotos (técnica Vertex) ---- */
+.anillo-escena { position: relative; perspective: 1100px; cursor: grab; user-select: none; touch-action: pan-y; }
+.anillo-escena:active { cursor: grabbing; }
+.anillo { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
+.anillo-tarjeta { position: absolute; top: 24px; left: 50%; width: var(--w); margin-left: calc(var(--w) / -2); backface-visibility: hidden; transform-style: preserve-3d; }
