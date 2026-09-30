@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { FALLOS, mejorar, pareceComida, recorte, type Aviso } from '../lib/api';
 import { ESTUDIO_MEJORAR_URL } from '../config';
 
@@ -6,11 +6,13 @@ export type PhotoTryHandle = { abrir: () => void };
 
 type Estado = 'idle' | 'proc' | 'dudoso' | 'falla' | 'resul';
 
+// Ventana (no sección) para probar el motor con una foto propia. Se abre desde
+// el hero, desde la tarjeta "+" del carrusel o desde el botón de la sección.
 const PhotoTry = forwardRef<PhotoTryHandle>(function PhotoTry(_props, ref) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const seccionRef = useRef<HTMLElement>(null);
   const origCanvas = useRef<HTMLCanvasElement | null>(null);
 
+  const [abierto, setAbierto] = useState(false);
   const [estado, setEstado] = useState<Estado>('idle');
   const [pct, setPct] = useState(0);
   const [procTxt, setProcTxt] = useState('leyendo tu foto');
@@ -24,11 +26,19 @@ const PhotoTry = forwardRef<PhotoTryHandle>(function PhotoTry(_props, ref) {
   const baRef = useRef<HTMLDivElement>(null);
   const relojRef = useRef<number | null>(null);
 
-  const abrir = () => {
-    seccionRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    setTimeout(() => inputRef.current?.click(), 420);
-  };
+  const abrir = () => { setAbierto(true); setTimeout(() => inputRef.current?.click(), 350); };
+  const elegir = () => inputRef.current?.click();
+  const cerrar = () => setAbierto(false);
   useImperativeHandle(ref, () => ({ abrir }));
+
+  useEffect(() => {
+    if (!abierto) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') cerrar(); };
+    window.addEventListener('keydown', onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
+  }, [abierto]);
 
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -98,7 +108,7 @@ const PhotoTry = forwardRef<PhotoTryHandle>(function PhotoTry(_props, ref) {
   const descargar = () => {
     if (!despues) return;
     const a = document.createElement('a');
-    a.download = 'mi-plato-plato-vivo.jpg';
+    a.download = 'mi-plato-meza.jpg';
     a.href = despues; a.click();
   };
 
@@ -109,108 +119,108 @@ const PhotoTry = forwardRef<PhotoTryHandle>(function PhotoTry(_props, ref) {
   };
   const actBA = useRef(false);
 
+  const btnLima = 'font-press-start text-[9px] text-carbon bg-lima border-[3px] border-carbon py-3.5 uppercase tracking-wider cursor-pointer';
+  const btnLinea = 'font-press-start text-[9px] text-crema border-2 border-crema/50 py-3.5 uppercase tracking-wider cursor-pointer';
+
   return (
-    <section ref={seccionRef} id="probar" className="bg-negro/45 py-16 md:py-24 px-6">
-      <div className="max-w-2xl mx-auto">
-        <span className="font-press-start text-[9px] bg-maiz text-negro px-3 py-2 tracking-widest">✱ PRUÉBALO CON TU COMIDA</span>
-        <h2 className="font-press-start text-maiz text-xl sm:text-3xl md:text-4xl leading-tight mt-5 uppercase">Sube una foto<br /><span className="text-crema">y mira qué pasa.</span></h2>
-        <p className="mt-4 text-crema/80 max-w-lg">Sácale una foto a un plato tuyo ahora, o elige una de tu galería. La arregla el mismo motor que usamos para las cartas de verdad. Tarda unos segundos.</p>
+    <>
+      <input ref={inputRef} type="file" accept="image/*" hidden onChange={onFile} />
+      {abierto && (
+        <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm overflow-y-auto" onClick={cerrar} role="dialog" aria-modal="true">
+          <div className="min-h-full flex items-start sm:items-center justify-center p-3 sm:p-8">
+            <section onClick={(e) => e.stopPropagation()} className="relative w-full max-w-xl bg-negro border-[3px] border-lima shadow-[8px_8px_0_var(--color-rojo)] p-5 sm:p-7">
+              <button onClick={cerrar} aria-label="Cerrar" className="absolute top-3 right-3 font-press-start text-[12px] text-crema/60 hover:text-rojo cursor-pointer bg-transparent border-none">[X]</button>
 
-        <div className="mt-6 border-2 border-dashed border-crema/25 p-5">
-          <p className="font-press-start text-[9px] text-lima tracking-widest uppercase mb-4">Para que salga bien, la foto debe ser:</p>
-          <ul className="grid gap-3">
-            {[['Un plato entero', 'sin empezar a comer'], ['Servido y ordenado', 'como se lo das al cliente'], ['De arriba o de costado', 'que se vea todo el plato'], ['Con luz', 'de día o cerca de una ventana']].map(([b, s]) => (
-              <li key={b} className="pl-6 relative"><span className="absolute left-0 text-lima font-bold">✓</span><b className="text-crema">{b}</b> <span className="text-crema/60 text-sm">— {s}</span></li>
-            ))}
-          </ul>
-          <p className="text-sm text-crema/60 mt-4 pt-3 border-t border-crema/15">No importa que esté en plumavit, que el mantel sea feo o que salga la mesa de al lado. Eso lo limpiamos nosotros.</p>
+              <span className="font-press-start text-[8px] bg-maiz text-negro px-3 py-2 tracking-widest">✱ PRUÉBALO CON TU COMIDA</span>
+              <h2 className="font-press-start text-maiz text-lg sm:text-2xl leading-tight mt-4 uppercase">Sube una foto<br /><span className="text-crema">y mira qué pasa.</span></h2>
+              <p className="mt-3 text-crema/80 text-sm">Plato entero, servido y con luz. Si el fondo es feo o sale la mesa de al lado, no importa: eso lo limpiamos nosotros.</p>
+
+              {(estado === 'idle' || estado === 'proc') && (
+                <button onClick={elegir} disabled={estado === 'proc'} className="w-full mt-5 font-press-start text-[11px] text-crema bg-rojo border-[3px] border-negro py-5 shadow-[5px_5px_0_var(--color-maiz)] active:translate-y-1 active:shadow-none transition-all uppercase tracking-widest cursor-pointer disabled:opacity-60">
+                  📷 Elegir una foto ▸
+                </button>
+              )}
+              <p className="text-center text-xs text-crema/50 mt-2">Se usa solo para arreglarla. No la guardamos ni la publicamos.</p>
+
+              {estado === 'proc' && (
+                <div className="mt-5 text-center">
+                  <div className="h-2 bg-crema/15 border-2 border-carbon overflow-hidden"><i className="block h-full bg-lima transition-[width] duration-300" style={{ width: `${pct}%` }} /></div>
+                  <p className="font-mono text-sm text-lima mt-3">{procTxt}…</p>
+                </div>
+              )}
+
+              {estado === 'dudoso' && (
+                <div className="mt-5 bg-maiz text-carbon border-[3px] border-carbon shadow-[5px_5px_0_rgba(0,0,0,.4)] p-5">
+                  <div className="font-press-start text-[12px] leading-snug">🤔 Mmm… esto no parece comida</div>
+                  <p className="mt-3 text-sm">Puede que me esté equivocando — con ensaladas y sopas claras a veces me confundo. Si es un plato de verdad, adelante.</p>
+                  <div className="grid sm:grid-cols-2 gap-2.5 mt-4">
+                    <button onClick={() => arreglar(false)} className="font-press-start text-[9px] bg-lima border-2 border-carbon py-3.5 uppercase tracking-wider cursor-pointer">Es comida, arréglala ▸</button>
+                    <button onClick={elegir} className="font-press-start text-[9px] border-2 border-carbon/50 py-3.5 uppercase tracking-wider cursor-pointer">Elegir otra foto</button>
+                  </div>
+                </div>
+              )}
+
+              {estado === 'falla' && (
+                <div className="mt-5 bg-maiz text-carbon border-[3px] border-carbon shadow-[5px_5px_0_rgba(0,0,0,.4)] p-5">
+                  <div className="font-press-start text-[12px] leading-snug">{falla.tit}</div>
+                  <p className="mt-3 text-sm">{falla.txt}</p>
+                  {falla.cod && <p className="font-mono text-[11px] opacity-60 mt-2">código: {falla.cod}</p>}
+                  <div className="grid sm:grid-cols-2 gap-2.5 mt-4">
+                    <button onClick={elegir} className="font-press-start text-[9px] border-2 border-carbon/50 py-3.5 uppercase tracking-wider cursor-pointer">Probar con otra</button>
+                    <a href="#contacto" onClick={cerrar} className="font-press-start text-[9px] bg-lima border-2 border-carbon py-3.5 text-center uppercase tracking-wider">Escríbenos ▸</a>
+                  </div>
+                </div>
+              )}
+
+              {estado === 'resul' && (
+                <div className="mt-5">
+                  <div
+                    ref={baRef}
+                    className="relative border-[3px] border-lima overflow-hidden aspect-square bg-black select-none touch-none cursor-ew-resize"
+                    onPointerDown={(e) => { actBA.current = true; e.currentTarget.setPointerCapture(e.pointerId); moverBA(e.clientX); }}
+                    onPointerMove={(e) => actBA.current && moverBA(e.clientX)}
+                    onPointerUp={() => (actBA.current = false)}
+                    onPointerCancel={() => (actBA.current = false)}
+                  >
+                    <img src={antes} alt="Tu foto" className="absolute inset-0 w-full h-full object-cover" />
+                    <img src={despues} alt="Arreglada" className="absolute inset-0 w-full h-full object-cover ba-clip" style={{ ['--x' as string]: `${x}%` }} />
+                    <span className="absolute bottom-3 left-3 z-[3] font-press-start text-[8px] px-2 py-1.5 tracking-widest bg-carbon text-crema">TU FOTO</span>
+                    <span className="absolute bottom-3 right-3 z-[3] font-press-start text-[8px] px-2 py-1.5 tracking-widest bg-lima text-carbon">ARREGLADA</span>
+                    <div className="absolute top-0 bottom-0 w-1 bg-lima z-[3]" style={{ left: `${x}%` }} />
+                    <div className="absolute top-1/2 z-[4] w-[54px] h-[54px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-lima border-[3px] border-carbon grid place-items-center text-carbon font-press-start text-[15px]" style={{ left: `${x}%` }}>↔</div>
+                  </div>
+
+                  {aviso && (
+                    <div className="mt-4 border-l-4 border-lime bg-lima/10 px-4 py-3.5">
+                      <div className="font-press-start text-[10px] text-lima tracking-wide mb-1.5">{aviso.tit}</div>
+                      <p className="text-sm text-crema/90">{aviso.txt}</p>
+                    </div>
+                  )}
+
+                  <div className="grid sm:grid-cols-2 gap-2.5 mt-4">
+                    {mostrarPlato && <button onClick={() => arreglar(true)} className={btnLima}>🍽️ Ponerlo en un plato ▸</button>}
+                    <button onClick={descargar} className={btnLima}>Guardar mi foto ▸</button>
+                    <button onClick={elegir} className={btnLinea}>Probar con otra</button>
+                  </div>
+
+                  <div className="mt-5 border-[3px] border-lima bg-[#0A0605]">
+                    <div className="bg-lima text-carbon font-press-start text-[9px] tracking-wide px-3 py-2.5 flex justify-between"><span>▸ LO QUE PASÓ</span><span>{motor}</span></div>
+                    <div className="p-4">
+                      <p className="text-sm text-crema/90"><b className="text-lima">Tu comida no cambió.</b> Corregimos la luz, sacamos el ruido, dimos nitidez y limpiamos el fondo. Las mismas presas, la misma porción, el mismo plato.</p>
+                      <a href="#contacto" onClick={cerrar} className="block mt-4 font-press-start text-[9px] text-carbon bg-lima border-[3px] border-carbon py-4 text-center uppercase tracking-wider">Quiero toda mi carta así ▸</a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <p className="mt-5 pt-4 border-t border-crema/15 text-xs text-crema/60">
+                ¿Quieres comparar con otro motor? <a href={ESTUDIO_MEJORAR_URL} target="_blank" rel="noopener noreferrer" className="text-maiz underline underline-offset-2">Probar en el Estudio IA ▸</a>
+              </p>
+            </section>
+          </div>
         </div>
-
-        <input ref={inputRef} type="file" accept="image/*" hidden onChange={onFile} />
-        <button onClick={abrir} className="w-full mt-5 font-press-start text-[11px] text-crema bg-rojo border-[3px] border-negro py-6 shadow-[5px_5px_0_var(--color-maiz)] active:translate-y-1 active:shadow-none transition-all uppercase tracking-widest cursor-pointer">
-          📷 Elegir una foto ▸
-        </button>
-        <p className="text-center text-sm text-crema/50 mt-3">Se usa solo para arreglarla. No la guardamos ni la publicamos.</p>
-
-        <div className="mt-4 border-2 border-dashed border-crema/25 p-4 text-center">
-          <p className="font-press-start text-[8px] text-maiz tracking-widest uppercase mb-2">Comparando motores</p>
-          <p className="text-sm text-crema/70">Arriba usas <b className="text-crema">nuestro motor</b>. ¿Quieres ver cómo lo deja el <b className="text-crema">Estudio IA</b> y comparar?</p>
-          <a href={ESTUDIO_MEJORAR_URL} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 font-press-start text-[9px] text-carbon bg-maiz border-[3px] border-negro py-3 px-5 hover:bg-lima transition-colors uppercase tracking-wider">Probar en el Estudio IA ▸</a>
-        </div>
-
-        {estado === 'proc' && (
-          <div className="mt-6 text-center">
-            <div className="h-2 bg-crema/15 border-2 border-carbon overflow-hidden"><i className="block h-full bg-lima transition-[width] duration-300" style={{ width: `${pct}%` }} /></div>
-            <p className="font-mono text-sm text-lima mt-3">{procTxt}…</p>
-          </div>
-        )}
-
-        {estado === 'dudoso' && (
-          <div className="mt-6 bg-maiz text-carbon border-[3px] border-carbon shadow-[5px_5px_0_rgba(0,0,0,.4)] p-5">
-            <div className="font-press-start text-[12px] leading-snug">🤔 Mmm… esto no parece comida</div>
-            <p className="mt-3 text-sm">Puede que me esté equivocando — con ensaladas y sopas claras a veces me confundo. Si es un plato de verdad, adelante.</p>
-            <div className="grid sm:grid-cols-2 gap-2.5 mt-4">
-              <button onClick={() => arreglar(false)} className="font-press-start text-[9px] bg-lima border-2 border-carbon py-3.5 uppercase tracking-wider cursor-pointer">Es comida, arréglala ▸</button>
-              <button onClick={abrir} className="font-press-start text-[9px] border-2 border-carbon/50 py-3.5 uppercase tracking-wider cursor-pointer">Elegir otra foto</button>
-            </div>
-          </div>
-        )}
-
-        {estado === 'falla' && (
-          <div className="mt-6 bg-maiz text-carbon border-[3px] border-carbon shadow-[5px_5px_0_rgba(0,0,0,.4)] p-5">
-            <div className="font-press-start text-[12px] leading-snug">{falla.tit}</div>
-            <p className="mt-3 text-sm">{falla.txt}</p>
-            {falla.cod && <p className="font-mono text-[11px] opacity-60 mt-2">código: {falla.cod}</p>}
-            <div className="grid sm:grid-cols-2 gap-2.5 mt-4">
-              <button onClick={abrir} className="font-press-start text-[9px] border-2 border-carbon/50 py-3.5 uppercase tracking-wider cursor-pointer">Probar con otra</button>
-              <a href="#contacto" className="font-press-start text-[9px] bg-lima border-2 border-carbon py-3.5 text-center uppercase tracking-wider">Escríbenos ▸</a>
-            </div>
-          </div>
-        )}
-
-        {estado === 'resul' && (
-          <div className="mt-6">
-            <div
-              ref={baRef}
-              className="relative border-[3px] border-lima overflow-hidden aspect-square bg-black select-none touch-none cursor-ew-resize"
-              onPointerDown={(e) => { actBA.current = true; e.currentTarget.setPointerCapture(e.pointerId); moverBA(e.clientX); }}
-              onPointerMove={(e) => actBA.current && moverBA(e.clientX)}
-              onPointerUp={() => (actBA.current = false)}
-              onPointerCancel={() => (actBA.current = false)}
-            >
-              <img src={antes} alt="Tu foto" className="absolute inset-0 w-full h-full object-cover" />
-              <img src={despues} alt="Arreglada" className="absolute inset-0 w-full h-full object-cover ba-clip" style={{ ['--x' as string]: `${x}%` }} />
-              <span className="absolute bottom-3 left-3 z-[3] font-press-start text-[8px] px-2 py-1.5 tracking-widest bg-carbon text-crema">TU FOTO</span>
-              <span className="absolute bottom-3 right-3 z-[3] font-press-start text-[8px] px-2 py-1.5 tracking-widest bg-lima text-carbon">ARREGLADA</span>
-              <div className="absolute top-0 bottom-0 w-1 bg-lima z-[3]" style={{ left: `${x}%` }} />
-              <div className="absolute top-1/2 z-[4] w-[54px] h-[54px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-lima border-[3px] border-carbon grid place-items-center text-carbon font-press-start text-[15px]" style={{ left: `${x}%` }}>↔</div>
-            </div>
-
-            {aviso && (
-              <div className="mt-4 border-l-4 border-lima bg-lima/10 px-4 py-3.5">
-                <div className="font-press-start text-[10px] text-lima tracking-wide mb-1.5">{aviso.tit}</div>
-                <p className="text-sm text-crema/90">{aviso.txt}</p>
-              </div>
-            )}
-
-            <div className="grid sm:grid-cols-2 gap-2.5 mt-4">
-              {mostrarPlato && <button onClick={() => arreglar(true)} className="font-press-start text-[9px] text-carbon bg-lima border-[3px] border-carbon py-4 uppercase tracking-wider cursor-pointer">🍽️ Ponerlo en un plato ▸</button>}
-              <button onClick={descargar} className="font-press-start text-[9px] text-carbon bg-lima border-[3px] border-carbon py-4 uppercase tracking-wider cursor-pointer">Guardar mi foto ▸</button>
-              <button onClick={abrir} className="font-press-start text-[9px] text-crema border-2 border-crema/50 py-4 uppercase tracking-wider cursor-pointer">Probar con otra</button>
-            </div>
-
-            <div className="mt-6 border-[3px] border-lima bg-[#0A0605]">
-              <div className="bg-lima text-carbon font-press-start text-[9px] tracking-wide px-3 py-2.5 flex justify-between"><span>▸ LO QUE ACABA DE PASAR</span><span>{motor}</span></div>
-              <div className="p-5">
-                <p className="text-sm text-crema/90">Le corrigió el color de la luz, la volvió a iluminar como en estudio, le sacó el ruido, le dio nitidez y le limpió el fondo: fuera manos, servilletas, botellas y cables.</p>
-                <p className="text-sm text-crema/90 mt-3"><b className="text-lima">Tu comida no cambió.</b> Las mismas presas, la misma porción, el mismo plato. Arreglamos la foto, nunca el plato.</p>
-                <a href="#contacto" className="block mt-4 font-press-start text-[9px] text-carbon bg-lima border-[3px] border-carbon py-4 text-center uppercase tracking-wider">Quiero toda mi carta así ▸</a>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </section>
+      )}
+    </>
   );
 });
 

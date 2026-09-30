@@ -61,7 +61,7 @@ body { margin: 0; background: var(--color-negro); color: var(--color-crema); fon
 .rev.in { opacity: 1; transform: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee, .cursor-parp, .gira { animation: none; }
+  .animate-marquee, .animate-carrusel, .cursor-parp, .gira { animation: none; }
   .rev { opacity: 1; transform: none; }
   * , *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
@@ -87,3 +87,8 @@ body { margin: 0; background: var(--color-negro); color: var(--color-crema); fon
 .logo-gl-a { animation: logo-gl-a 360ms steps(1, end) both; filter: drop-shadow(2px 0 var(--color-rojo)) drop-shadow(-2px 0 var(--color-azul)); }
 .logo-gl-b { animation: logo-gl-b 360ms steps(1, end) both; filter: drop-shadow(-2px 0 var(--color-rojo)) drop-shadow(2px 0 var(--color-azul)); }
 .logo-capa svg { display: block; width: 100%; height: 100%; }
+
+/* ---- carrusel de fotos (cinta continua, se pausa al pasar el mouse) ---- */
+@keyframes carrusel { to { transform: translate3d(-50%, 0, 0); } }
+.animate-carrusel { display: flex; width: max-content; animation: carrusel 26s linear infinite; }
+.animate-carrusel:hover { animation-play-state: paused; }

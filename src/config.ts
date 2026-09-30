@@ -7,7 +7,6 @@ export const ESTUDIO_MEJORAR_URL = 'https://plato-vivo.vercel.app/estudio/?vista
 
 export const MARCA = {
   nombre: 'MEZA',
-  ciudad: 'Montero · Santa Cruz · Bolivia',
   eslogan: 'La mesa que atiende.',
   whatsapp: '', // número destino; vacío = sólo demo
 };

@@ -1,7 +1,7 @@
 # MEZA
 
-Landing única (React + Vite + TypeScript + Tailwind v4) para restaurantes de
-Montero, Santa Cruz. Diseño brutalista/retro-digital: todo el negocio en una sola
+Landing única (React + Vite + TypeScript + Tailwind v4) para restaurantes.
+Diseño brutalista/retro-digital: todo el negocio en una sola
 página con la misma línea gráfica — hero scroll-driven, prueba de foto con el motor
 real, menú en 3D, máquina de afiches y contacto.
 

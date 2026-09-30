@@ -50,8 +50,7 @@ export default function ScrollHero({ onProbar }: { onProbar: () => void }) {
         <a href="/" className="absolute top-6 left-6 md:left-14 z-50" aria-label="MEZA"><span className="md:hidden"><LogoMeza alto={22} /></span><span className="hidden md:inline"><LogoMeza alto={30} /></span></a>
         <nav className="absolute top-8 right-5 md:right-14 z-50 flex gap-3 sm:gap-5 md:gap-8 font-press-start text-[8px] sm:text-[11px] text-white">
           <a href="/demo" className="hover:text-maiz transition-colors">Menú</a>
-          <a href="#probar" className="hover:text-maiz transition-colors">Fotos</a>
-          <a href="#redes" className="hover:text-maiz transition-colors">Redes</a>
+          <a href="#fotos" className="hover:text-maiz transition-colors">Fotos</a>
           <a href="#contacto" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); }} className="hover:text-maiz transition-colors">Contacto</a>
           <a href={ESTUDIO_URL} target="_blank" rel="noopener noreferrer" className="hidden sm:inline text-carbon bg-maiz px-2.5 py-1.5 hover:bg-lima transition-colors">Estudio IA ▸</a>
         </nav>
