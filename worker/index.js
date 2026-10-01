@@ -507,6 +507,22 @@ function igual(a, b) {
 var index_default = {
   async fetch(request, env, ctx) {
     const u = new URL(request.url);
+    // webhook del bot de Telegram: "/start <local>-<codigo>" vincula al dueño con la sala de su local
+    if (u.pathname === "/api/telegram" && request.method === "POST") {
+      if (!env.TELEGRAM_WEBHOOK_SECRET || request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== env.TELEGRAM_WEBHOOK_SECRET) return new Response("no", { status: 403 });
+      let up = {}; try { up = await request.json(); } catch { /* */ }
+      const msg = up.message || up.edited_message;
+      const mm = String(msg && msg.text || "").match(/^\/start[ _]+([a-z0-9-]+?)-([a-z0-9]{6})$/i);
+      if (msg && mm) {
+        const local = mm[1].toLowerCase();
+        const nombre = [msg.from && msg.from.first_name, msg.from && msg.from.last_name].filter(Boolean).join(" ") || (msg.chat && msg.chat.username) || "";
+        ctx.waitUntil(env.SALA.get(env.SALA.idFromName(local)).fetch(new Request(`https://sala/api/sala/${local}/vincular`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ interno: env.TELEGRAM_WEBHOOK_SECRET, code: mm[2], chatId: String(msg.chat.id), nombre }),
+        })));
+      }
+      return new Response("ok");
+    }
     // sala en tiempo real de un local (pedidos, pagos, cocina, caja)
     if (u.pathname.startsWith("/api/sala/")) {
       const local = String(u.pathname.split("/")[3] || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 40);

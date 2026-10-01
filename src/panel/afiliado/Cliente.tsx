@@ -430,7 +430,7 @@ function HojaPago({ data, qr, pedido, onClose, onActualizado }: {
     if (!f || !pedido) return;
     setSubiendo(true); setErr('');
     try {
-      const dataUrl = await comprimirImagen(f);
+      const dataUrl = await comprimirImagen(f, 1100, 0.72);   // legible y liviano: se archiva 90 días
       const r = await subirComprobante(data.local, pedido.id, dataUrl);
       if (!r.ok) setErr(r.msg || 'No se pudo subir el comprobante. Intenta de nuevo.');
       else onActualizado(r.pedido);

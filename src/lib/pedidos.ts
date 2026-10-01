@@ -33,7 +33,11 @@ export type Cierre = {
   efectivoContado: number | null;   // lo que contó el personal (opcional)
   diferencia: number | null;        // contado − efectivo esperado
   nota: string;
+  local?: string;
+  comprobantes?: { pedido: string; mesa: string; total: number; en: number }[];   // archivados 90 días
+  envio?: { telegram?: string; webhook?: string };                               // 'ok' | 'error: …'
 };
+export type Destino = { telegram: { nombre: string; desde: number } | null };
 
 export type EventoSala =
   | { type: 'estado'; pedidos: Pedido[]; agotados: string[]; qr: string | null; cierreDesde?: number }
@@ -77,8 +81,13 @@ export const verComprobante = (local: string, id: string, clave: string) =>
 export const guardarQr = (local: string, clave: string, qr: string | null) => post(`${base(local)}/qr`, { clave, qr });
 export const setAgotados = (local: string, clave: string, slugs: string[]) => post<{ slugs: string[] }>(`${base(local)}/agotados`, { clave, slugs });
 export const getCierres = (local: string, clave: string) => get<{ cierres: Cierre[]; cierreDesde: number }>(`${base(local)}/cierres?clave=${encodeURIComponent(clave)}`);
-export const cerrarCaja = (local: string, clave: string, efectivoContado: number | null, nota: string) =>
-  post<{ cierre: Cierre }>(`${base(local)}/cierres`, { clave, efectivoContado, nota });
+export const cerrarCaja = (local: string, clave: string, efectivoContado: number | null, nota: string, nombre: string) =>
+  post<{ cierre: Cierre }>(`${base(local)}/cierres`, { clave, efectivoContado, nota, nombre });
+export const urlPdfCierre = (local: string, id: string, clave: string) => `${base(local)}/cierres/${id}/pdf?clave=${encodeURIComponent(clave)}`;
+export const urlArchivo = (local: string, cierreId: string, pedidoId: string, clave: string) => `${base(local)}/archivo/${cierreId}/${pedidoId}?clave=${encodeURIComponent(clave)}`;
+export const getDestino = (local: string, clave: string) => get<{ destino: Destino; bot: string; telegramListo: boolean; webhook: boolean }>(`${base(local)}/destino?clave=${encodeURIComponent(clave)}`);
+export const codigoVinculo = (local: string, clave: string) => post<{ code: string; param: string; enlace: string }>(`${base(local)}/destino/codigo`, { clave });
+export const quitarDestino = (local: string, clave: string) => post(`${base(local)}/destino/quitar`, { clave });
 
 // ---- clave de personal guardada en este dispositivo ----
 const kClave = (local: string) => `pv_clave_${local}`;

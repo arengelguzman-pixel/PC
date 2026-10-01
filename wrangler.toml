@@ -13,6 +13,10 @@ MOTOR = "gemini"
 RESOLUCION = "1K"
 LIMITE_DIA = "120"
 LIMITE_IP = "40"
+# Envío automático del cierre de caja por Telegram: usuario del bot (sin @). El token y el
+# secreto del webhook van como secrets: TELEGRAM_TOKEN, TELEGRAM_WEBHOOK_SECRET. Opcional:
+# WEBHOOK_CIERRE (URL de n8n/Make que recibe el cierre con el PDF en base64).
+TELEGRAM_BOT = ""
 
 # Cartas de los restaurantes (panel del dueño / alta).
 [[kv_namespaces]]

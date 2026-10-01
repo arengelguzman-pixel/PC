@@ -1,13 +1,20 @@
 import { useMemo, useState } from 'react';
-import type { Cierre } from '../../lib/pedidos';
+import type { Cierre, Destino } from '../../lib/pedidos';
 
 // Cierre de caja (nuestra tipografía). Lo usan la Caja real del afiliado y el
 // demo de la landing con los mismos datos de entrada:
 //  · cobros: ventas cobradas del turno abierto (desde el último cierre)
 //  · cierres: historial (el más nuevo primero)
 //  · onCerrar: registra el cierre (el servidor o el demo calculan el balance)
+//  · urlPdf / urlComprobante / envio: solo en la Caja real (archivo y envío automático)
 
 export type Cobro = { id: string; total: number; metodo: 'qr' | 'efectivo'; items: { n: string; q: number; p: number; tamT?: string }[]; en: number };
+export type Envio = {
+  destino: Destino; bot: string; telegramListo: boolean; webhook: boolean;
+  onVincular: () => Promise<{ code: string; param: string; enlace: string } | null>;
+  onDesvincular: () => Promise<void>;
+  onRefrescar: () => Promise<void>;
+};
 
 const fecha = (ms: number) => new Date(ms).toLocaleString('es-BO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).replace('.', '');
 const bs = (n: number) => `Bs ${Math.round(n * 100) / 100}`;
@@ -35,6 +42,7 @@ export function textoResumen(nombre: string, c: Cierre) {
   ];
   if (c.efectivoContado !== null) lineas.push(`Efectivo contado: ${bs(c.efectivoContado)} · diferencia ${c.diferencia !== null && c.diferencia >= 0 ? '+' : ''}${c.diferencia ?? 0}`);
   if (c.top.length) lineas.push('', 'Más vendidos:', ...c.top.slice(0, 5).map((t, i) => `${i + 1}. ${t.n} ×${t.q} (${bs(t.total)})`));
+  if (c.comprobantes?.length) lineas.push('', `Comprobantes de QR archivados: ${c.comprobantes.length}`);
   if (c.nota) lineas.push('', `Nota: ${c.nota}`);
   lineas.push('', 'MEZA · la mesa que atiende');
   return lineas.join('\n');
@@ -44,6 +52,7 @@ const BTN = 'font-press-start text-[8px] py-2.5 px-3 border-2 uppercase tracking
 const BTN_LIMA = `${BTN} text-negro bg-lima border-negro`;
 const BTN_LINEA = `${BTN} text-crema/80 border-crema/30`;
 const BTN_MAIZ = `${BTN} text-negro bg-maiz border-negro`;
+const BTN_BRASA = `${BTN} text-brasa border-brasa`;
 
 function Dato({ k, v, grande }: { k: string; v: string; grande?: boolean }) {
   return (
@@ -54,10 +63,60 @@ function Dato({ k, v, grande }: { k: string; v: string; grande?: boolean }) {
   );
 }
 
-export default function CierreCaja({ nombre, desde, cobros, cierres, onCerrar, ocupado, error }: {
+function estadoEnvio(c: Cierre, envio?: Envio) {
+  if (!envio) return null;
+  const hayDestino = !!envio.destino.telegram || envio.webhook;
+  if (!hayDestino) return <span className="text-crema/40">sin envío automático (vincula Telegram abajo)</span>;
+  const e = c.envio || {};
+  if (!Object.keys(e).length) return <span className="text-maiz">enviando…</span>;
+  const partes: string[] = [];
+  if (e.telegram) partes.push(e.telegram === 'ok' ? 'Telegram ✓' : `Telegram ✗ (${e.telegram.replace('error: ', '')})`);
+  if (e.webhook) partes.push(e.webhook === 'ok' ? 'webhook ✓' : `webhook ✗ (${e.webhook.replace('error: ', '')})`);
+  return <span className={partes.some((p) => p.includes('✗')) ? 'text-brasa' : 'text-lima'}>enviado · {partes.join(' · ')}</span>;
+}
+
+function EnvioAutomatico({ envio }: { envio: Envio }) {
+  const [vinc, setVinc] = useState<{ code: string; param: string; enlace: string } | null>(null);
+  const [ocupado, setOcupado] = useState(false);
+  const [copiado, setCopiado] = useState(false);
+  const t = envio.destino.telegram;
+  const generar = async () => { setOcupado(true); setVinc(await envio.onVincular()); setOcupado(false); };
+  const copiar = async (txt: string) => { try { await navigator.clipboard.writeText(txt); setCopiado(true); setTimeout(() => setCopiado(false), 1500); } catch { /* */ } };
+  return (
+    <div className="mt-5 border-2 border-crema/20 bg-carbon p-4">
+      <div className="font-press-start text-[8px] text-maiz tracking-widest uppercase">Envío automático y archivo</div>
+      <p className="text-sm text-crema/60 mt-2">Al cerrar caja se arma un PDF con el balance y todos los comprobantes de QR del turno (se guardan 90 días) y se envía solo al dueño por Telegram{envio.webhook ? ' y al webhook configurado' : ''}.</p>
+      {t ? (
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <span className="font-mono text-xs text-lima">● Telegram vinculado: {t.nombre || 'dueño'} · desde {fecha(t.desde)}</span>
+          <button onClick={envio.onDesvincular} className={BTN_BRASA}>Desvincular</button>
+        </div>
+      ) : !envio.telegramListo ? (
+        <p className="mt-3 font-mono text-xs text-crema/45">El bot de Telegram todavía no está configurado (ver README: TELEGRAM_BOT y TELEGRAM_TOKEN).</p>
+      ) : vinc ? (
+        <div className="mt-3">
+          <p className="text-sm text-crema/80">Abre este enlace en el celular del dueño y toca <b>Iniciar</b>. Vale 15 minutos.</p>
+          <div className="mt-2 flex flex-wrap gap-2 items-center">
+            <a href={vinc.enlace} target="_blank" rel="noopener noreferrer" className={BTN_LIMA}>Abrir en Telegram ▸</a>
+            <button onClick={() => copiar(vinc.enlace)} className={BTN_LINEA}>{copiado ? 'Copiado ✓' : 'Copiar enlace'}</button>
+            <button onClick={envio.onRefrescar} className={BTN_LINEA}>Ya lo abrí, revisar</button>
+          </div>
+          <p className="mt-2 font-mono text-[11px] text-crema/45 break-all">{vinc.enlace}</p>
+        </div>
+      ) : (
+        <button onClick={generar} disabled={ocupado} className={`${BTN_LIMA} mt-3`}>{ocupado ? 'Generando…' : 'Vincular Telegram del dueño ▸'}</button>
+      )}
+    </div>
+  );
+}
+
+export default function CierreCaja({ nombre, desde, cobros, cierres, onCerrar, ocupado, error, urlPdf, urlComprobante, envio }: {
   nombre: string; desde: number; cobros: Cobro[]; cierres: Cierre[];
   onCerrar: (efectivoContado: number | null, nota: string) => Promise<Cierre | null>;
   ocupado?: boolean; error?: string;
+  urlPdf?: (id: string) => string;
+  urlComprobante?: (cierreId: string, pedidoId: string) => string;
+  envio?: Envio;
 }) {
   const turno = useMemo(() => resumir(cobros), [cobros]);
   const [modal, setModal] = useState(false);
@@ -67,6 +126,7 @@ export default function CierreCaja({ nombre, desde, cobros, cierres, onCerrar, o
   const [abierto, setAbierto] = useState<string | null>(null);
   const promedio = turno.pedidos ? Math.round(turno.total / turno.pedidos) : 0;
   const dif = contado.trim() === '' ? null : Math.round((Number(contado) - turno.efectivo) * 100) / 100;
+  const qrEnTurno = cobros.filter((c) => c.metodo === 'qr').length;
 
   const confirmar = async () => {
     const c = await onCerrar(contado.trim() === '' ? null : Number(contado), nota.trim());
@@ -84,8 +144,12 @@ export default function CierreCaja({ nombre, desde, cobros, cierres, onCerrar, o
 
       {hecho && (
         <div className="mb-4 border-[3px] border-lima bg-lima/10 p-3 flex flex-wrap items-center justify-between gap-2">
-          <span className="font-press-start text-[9px] text-lima leading-relaxed">✓ {hecho.id} guardado · {bs(hecho.total)} · {hecho.pedidos} pedidos</span>
-          <div className="flex gap-2"><button onClick={() => compartir(hecho)} className={BTN_LIMA}>Enviar por WhatsApp ▸</button><button onClick={() => setHecho(null)} className={BTN_LINEA}>Cerrar</button></div>
+          <span className="font-press-start text-[9px] text-lima leading-relaxed">✓ {hecho.id} guardado · {bs(hecho.total)} · {hecho.pedidos} pedidos{hecho.comprobantes?.length ? ` · ${hecho.comprobantes.length} comprobantes archivados` : ''}</span>
+          <div className="flex flex-wrap gap-2">
+            {urlPdf && <a href={urlPdf(hecho.id)} target="_blank" rel="noopener noreferrer" className={BTN_MAIZ}>PDF ▸</a>}
+            <button onClick={() => compartir(hecho)} className={BTN_LIMA}>Enviar por WhatsApp ▸</button>
+            <button onClick={() => setHecho(null)} className={BTN_LINEA}>Cerrar</button>
+          </div>
         </div>
       )}
 
@@ -93,7 +157,7 @@ export default function CierreCaja({ nombre, desde, cobros, cierres, onCerrar, o
       <div className="border-2 border-crema/20 bg-carbon p-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <span className="font-press-start text-[9px] text-maiz tracking-wider uppercase">Turno abierto {desde ? `· desde ${fecha(desde)}` : '· desde el inicio'}</span>
-          <span className="font-mono text-[11px] text-crema/60">{turno.pedidos} cobro{turno.pedidos === 1 ? '' : 's'}</span>
+          <span className="font-mono text-[11px] text-crema/60">{turno.pedidos} cobro{turno.pedidos === 1 ? '' : 's'}{urlPdf && qrEnTurno ? ` · ${qrEnTurno} comprobante${qrEnTurno === 1 ? '' : 's'} de QR` : ''}</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3">
           <Dato k="Total cobrado" v={bs(turno.total)} grande />
@@ -116,6 +180,9 @@ export default function CierreCaja({ nombre, desde, cobros, cierres, onCerrar, o
         {error && <p className="mt-2 text-xs text-brasa">{error}</p>}
       </div>
 
+      {envio && <EnvioAutomatico envio={envio} />}
+      {!envio && !urlPdf && <p className="mt-3 font-mono text-[11px] text-crema/40">En el piloto real, el cierre guarda los comprobantes de QR 90 días, arma el PDF y se envía solo al dueño.</p>}
+
       {/* historial */}
       <div className="mt-5">
         <div className="font-press-start text-[8px] text-crema/60 tracking-widest uppercase mb-2">Cierres anteriores{cierres.length ? ` · ${cierres.length}` : ''}</div>
@@ -127,7 +194,7 @@ export default function CierreCaja({ nombre, desde, cobros, cierres, onCerrar, o
                 <div key={c.id}>
                   <button onClick={() => setAbierto(abierto === c.id ? null : c.id)} className="w-full text-left px-3 py-2.5 grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 items-center font-mono text-xs">
                     <span className="font-press-start text-[8px] text-lima">{c.id}</span>
-                    <span className="text-crema/70 truncate">{fecha(c.hasta)} · {c.pedidos} pedidos</span>
+                    <span className="text-crema/70 truncate">{fecha(c.hasta)} · {c.pedidos} pedidos{c.comprobantes?.length ? ` · ${c.comprobantes.length} comp.` : ''}</span>
                     <span className="hidden sm:inline text-crema/60 tabular-nums">QR {c.qr}</span>
                     <span className="hidden sm:inline text-crema/60 tabular-nums">Efec. {c.efectivo}</span>
                     <span className="text-maiz tabular-nums text-right">{bs(c.total)}{c.diferencia !== null && c.diferencia !== 0 ? <span className={`ml-2 ${c.diferencia > 0 ? 'text-lima' : 'text-brasa'}`}>{c.diferencia > 0 ? '+' : ''}{c.diferencia}</span> : ''}</span>
@@ -135,7 +202,22 @@ export default function CierreCaja({ nombre, desde, cobros, cierres, onCerrar, o
                   {abierto === c.id && (
                     <div className="px-3 pb-3 text-xs font-mono text-crema/80">
                       <pre className="whitespace-pre-wrap leading-relaxed bg-negro border border-crema/10 p-3">{textoResumen(nombre, c)}</pre>
-                      <div className="flex gap-2 mt-2"><button onClick={() => compartir(c)} className={BTN_LIMA}>Enviar por WhatsApp ▸</button><button onClick={() => navigator.clipboard?.writeText(textoResumen(nombre, c))} className={BTN_LINEA}>Copiar</button></div>
+                      {envio && <p className="mt-2 text-[11px]">Envío automático: {estadoEnvio(c, envio)}</p>}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {urlPdf && <a href={urlPdf(c.id)} target="_blank" rel="noopener noreferrer" className={BTN_MAIZ}>Descargar PDF ▸</a>}
+                        <button onClick={() => compartir(c)} className={BTN_LIMA}>Enviar por WhatsApp ▸</button>
+                        <button onClick={() => navigator.clipboard?.writeText(textoResumen(nombre, c))} className={BTN_LINEA}>Copiar</button>
+                      </div>
+                      {urlComprobante && c.comprobantes && c.comprobantes.length > 0 && (
+                        <div className="mt-3">
+                          <div className="font-press-start text-[7px] text-crema/55 tracking-widest uppercase mb-1.5">Comprobantes archivados · {c.comprobantes.length}</div>
+                          <div className="flex flex-wrap gap-2">
+                            {c.comprobantes.map((m) => (
+                              <a key={m.pedido} href={urlComprobante(c.id, m.pedido)} target="_blank" rel="noopener noreferrer" className="border-2 border-crema/20 px-2.5 py-1.5 hover:border-lima text-[11px] text-crema/80">{m.pedido} · M{m.mesa || '-'} · {bs(m.total)} ↗</a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -149,7 +231,7 @@ export default function CierreCaja({ nombre, desde, cobros, cierres, onCerrar, o
         <div className="fixed inset-0 z-[90] bg-black/90 flex" onClick={() => !ocupado && setModal(false)}>
           <div className="relative m-auto w-full max-w-md max-h-[94dvh] overflow-y-auto border-[3px] border-maiz bg-carbon p-5" onClick={(e) => e.stopPropagation()}>
             <div className="font-press-start text-[10px] text-maiz uppercase tracking-wide">Cerrar caja</div>
-            <p className="text-sm text-crema/70 mt-2">Se guardará el balance del turno y empezará uno nuevo desde este momento.</p>
+            <p className="text-sm text-crema/70 mt-2">Se guardará el balance del turno y empezará uno nuevo desde este momento.{urlPdf ? ` Los ${qrEnTurno} comprobante${qrEnTurno === 1 ? '' : 's'} de QR quedan archivados y el PDF se envía solo.` : ''}</p>
             <div className="grid grid-cols-2 gap-2.5 mt-4">
               <Dato k="Total" v={bs(turno.total)} grande /><Dato k="Pedidos" v={String(turno.pedidos)} />
               <Dato k="QR" v={bs(turno.qr)} /><Dato k="Efectivo esperado" v={bs(turno.efectivo)} />

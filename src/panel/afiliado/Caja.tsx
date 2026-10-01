@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Afiliado } from '../../afiliados/elGaraje';
-import { confirmarPago, verComprobante, guardarQr, comprimirImagen, getCierres, cerrarCaja, ETIQUETA_PAGO, type Pedido, type Cierre } from '../../lib/pedidos';
+import { confirmarPago, verComprobante, guardarQr, comprimirImagen, getCierres, cerrarCaja, getDestino, codigoVinculo, quitarDestino, urlPdfCierre, urlArchivo, ETIQUETA_PAGO, type Pedido, type Cierre, type Destino } from '../../lib/pedidos';
 import { beep, Conexion } from './comunes';
 import CierreCaja, { type Cobro } from './CierreCaja';
 
@@ -38,6 +38,7 @@ export default function Caja({ data, pedidos, qr, cierreDesde, clave, conectado,
   const [cierres, setCierres] = useState<Cierre[]>([]);
   const [cierreOcupado, setCierreOcupado] = useState(false);
   const [cierreErr, setCierreErr] = useState('');
+  const [destino, setDestino] = useState<{ destino: Destino; bot: string; telegramListo: boolean; webhook: boolean } | null>(null);
 
   const lista = useMemo(() => pedidos.map((p) => { const c = cambios[p.id]; return c && c.actualizado > p.actualizado ? c : p; }), [pedidos, cambios]);
   const porConfirmar = lista.filter((p) => p.pago === 'por_confirmar');
@@ -59,9 +60,24 @@ export default function Caja({ data, pedidos, qr, cierreDesde, clave, conectado,
     return () => { vivo = false; };
   }, [data.local, clave, cierreDesde]);
 
+  useEffect(() => {
+    let vivo = true;
+    getDestino(data.local, clave).then((r) => { if (vivo && r.ok) setDestino({ destino: r.destino, bot: r.bot, telegramListo: r.telegramListo, webhook: r.webhook }); });
+    return () => { vivo = false; };
+  }, [data.local, clave]);
+  // el estado de envío llega unos segundos después del cierre: se vuelve a pedir la lista
+  useEffect(() => {
+    if (!cierres.length || cierres[0].envio === undefined || Object.keys(cierres[0].envio).length) return;
+    const t = window.setTimeout(() => getCierres(data.local, clave).then((r) => { if (r.ok) setCierres(r.cierres); }), 6000);
+    return () => clearTimeout(t);
+  }, [cierres, data.local, clave]);
+  const vincular = async () => { const r = await codigoVinculo(data.local, clave); return r.ok ? { code: r.code, param: r.param, enlace: r.enlace } : null; };
+  const desvincular = async () => { const r = await quitarDestino(data.local, clave); if (r.ok) setDestino((d) => (d ? { ...d, destino: { telegram: null } } : d)); };
+  const refrescarDestino = async () => { const r = await getDestino(data.local, clave); if (r.ok) setDestino({ destino: r.destino, bot: r.bot, telegramListo: r.telegramListo, webhook: r.webhook }); };
+
   const cerrar = async (efectivoContado: number | null, nota: string) => {
     setCierreOcupado(true); setCierreErr('');
-    const r = await cerrarCaja(data.local, clave, efectivoContado, nota);
+    const r = await cerrarCaja(data.local, clave, efectivoContado, nota, data.nombre);
     setCierreOcupado(false);
     if (!r.ok) { setCierreErr(textoError(r)); return null; }
     setCierres((c) => [r.cierre, ...c.filter((x) => x.id !== r.cierre.id)]);
@@ -189,7 +205,9 @@ export default function Caja({ data, pedidos, qr, cierreDesde, clave, conectado,
 
         {seccion('Por cobrar', porCobrar, 'nada por cobrar — los comprobantes y los pedidos en efectivo aparecen aquí')}
         {seccion('Cobrados', cobrados, 'aún no hay cobros confirmados')}
-        <CierreCaja nombre={data.nombre} desde={cierreDesde} cobros={cobrosTurno} cierres={cierres} onCerrar={cerrar} ocupado={cierreOcupado} error={cierreErr} />
+        <CierreCaja nombre={data.nombre} desde={cierreDesde} cobros={cobrosTurno} cierres={cierres} onCerrar={cerrar} ocupado={cierreOcupado} error={cierreErr}
+          urlPdf={(id) => urlPdfCierre(data.local, id, clave)} urlComprobante={(z, p) => urlArchivo(data.local, z, p, clave)}
+          envio={destino ? { ...destino, onVincular: vincular, onDesvincular: desvincular, onRefrescar: refrescarDestino } : undefined} />
         {seccion('Rechazados', rechazados, 'sin pagos rechazados')}
 
         {/* QR de cobro */}
