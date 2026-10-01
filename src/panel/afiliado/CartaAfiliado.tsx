@@ -30,6 +30,7 @@ export default function CartaAfiliado({ data }: { data: Afiliado }) {
   const [pedidos, setPedidos] = useState<Record<string, Pedido>>({});
   const [agotados, setAgotados] = useState<string[]>([]);
   const [qr, setQr] = useState<string | null>(null);
+  const [cierreDesde, setCierreDesde] = useState(0);     // inicio del turno abierto de caja
   const [conectado, setConectado] = useState(false);
   const [clave, setClaveEstado] = useState(() => claveGuardada(data.local));
   const setClave = (c: string) => { guardarClave(data.local, c); setClaveEstado(c); };
@@ -41,11 +42,12 @@ export default function CartaAfiliado({ data }: { data: Afiliado }) {
     const cerrar = conectarSala(data.local, (e) => {
       if (e.type === 'estado') {
         setPedidos(Object.fromEntries(e.pedidos.map((p) => [p.id, p])));
-        setAgotados(e.agotados); setQr(e.qr);
+        setAgotados(e.agotados); setQr(e.qr); setCierreDesde(e.cierreDesde || 0);
       } else if (e.type === 'pedido') {
         setPedidos((prev) => ({ ...prev, [e.pedido.id]: e.pedido }));
       } else if (e.type === 'agotados') setAgotados(e.slugs);
       else if (e.type === 'qr') setQr(e.qr);
+      else if (e.type === 'cierre') setCierreDesde(e.hasta);
     }, setConectado);
     return () => { document.head.removeChild(m); cerrar(); };
   }, [data.local, data.nombre]);
@@ -75,7 +77,7 @@ export default function CartaAfiliado({ data }: { data: Afiliado }) {
         ? <Cocina data={data} pedidos={lista} agotados={agotados} clave={clave} conectado={conectado} salir={() => setClave('')} />
         : <PuertaClave local={data.local} onOk={setClave} />)}
       {vista === 'caja' && (clave
-        ? <Caja data={data} pedidos={lista} qr={qr} clave={clave} conectado={conectado} salir={() => setClave('')} />
+        ? <Caja data={data} pedidos={lista} qr={qr} cierreDesde={cierreDesde} clave={clave} conectado={conectado} salir={() => setClave('')} />
         : <PuertaClave local={data.local} onOk={setClave} />)}
     </div>
   );

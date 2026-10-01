@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Afiliado } from '../../afiliados/elGaraje';
-import { confirmarPago, verComprobante, guardarQr, comprimirImagen, ETIQUETA_PAGO, type Pedido } from '../../lib/pedidos';
+import { confirmarPago, verComprobante, guardarQr, comprimirImagen, getCierres, cerrarCaja, ETIQUETA_PAGO, type Pedido, type Cierre } from '../../lib/pedidos';
 import { beep, Conexion } from './comunes';
+import CierreCaja, { type Cobro } from './CierreCaja';
 
 // Vista de Caja (nuestra tipografía). Confirma o rechaza pagos viendo el
 // comprobante, marca cobros en efectivo y gestiona el QR de cobro del local.
@@ -22,8 +23,8 @@ const BTN_BRASA = `${BTN} text-brasa border-brasa`;
 
 type Modal = { id: string; src: string | null; err: string };
 
-export default function Caja({ data, pedidos, qr, clave, conectado, salir }: {
-  data: Afiliado; pedidos: Pedido[]; qr: string | null; clave: string; conectado: boolean; salir: () => void;
+export default function Caja({ data, pedidos, qr, cierreDesde, clave, conectado, salir }: {
+  data: Afiliado; pedidos: Pedido[]; qr: string | null; cierreDesde: number; clave: string; conectado: boolean; salir: () => void;
 }) {
   const [cambios, setCambios] = useState<Record<string, Pedido>>({});   // optimista: gana si es más nuevo que la prop
   const [cargando, setCargando] = useState('');                          // id del pedido en proceso
@@ -34,6 +35,9 @@ export default function Caja({ data, pedidos, qr, clave, conectado, salir }: {
   const [qrErr, setQrErr] = useState('');
   const avisoTimer = useRef(0);
   const vistos = useRef<Set<string> | null>(null);
+  const [cierres, setCierres] = useState<Cierre[]>([]);
+  const [cierreOcupado, setCierreOcupado] = useState(false);
+  const [cierreErr, setCierreErr] = useState('');
 
   const lista = useMemo(() => pedidos.map((p) => { const c = cambios[p.id]; return c && c.actualizado > p.actualizado ? c : p; }), [pedidos, cambios]);
   const porConfirmar = lista.filter((p) => p.pago === 'por_confirmar');
@@ -41,7 +45,28 @@ export default function Caja({ data, pedidos, qr, clave, conectado, salir }: {
   const porCobrar = [...porConfirmar, ...efectivo];
   const cobrados = lista.filter((p) => p.pago === 'confirmado').sort((a, b) => (b.confirmadoEn ?? b.actualizado) - (a.confirmadoEn ?? a.actualizado));
   const rechazados = lista.filter((p) => p.pago === 'rechazado');
+  // turno abierto de caja: cobros confirmados después del último cierre
+  const cobrosTurno: Cobro[] = cobrados
+    .filter((p) => (p.confirmadoEn ?? p.actualizado) > cierreDesde)
+    .map((p) => ({ id: p.id, total: p.total, metodo: p.metodo, items: p.items.map((l) => ({ n: l.n, q: l.q, p: l.p, tamT: l.tamT })), en: p.confirmadoEn ?? p.actualizado }));
+  const turnoTotal = cobrosTurno.reduce((a, c) => a + c.total, 0);
   const hoy = cobrados.reduce((a, p) => a + (p.confirmadoEn && esHoy(p.confirmadoEn) ? p.total : 0), 0);
+
+  // historial de cierres (con clave); se vuelve a pedir cuando alguien cierra caja
+  useEffect(() => {
+    let vivo = true;
+    getCierres(data.local, clave).then((r) => { if (vivo && r.ok) setCierres(r.cierres); });
+    return () => { vivo = false; };
+  }, [data.local, clave, cierreDesde]);
+
+  const cerrar = async (efectivoContado: number | null, nota: string) => {
+    setCierreOcupado(true); setCierreErr('');
+    const r = await cerrarCaja(data.local, clave, efectivoContado, nota);
+    setCierreOcupado(false);
+    if (!r.ok) { setCierreErr(textoError(r)); return null; }
+    setCierres((c) => [r.cierre, ...c.filter((x) => x.id !== r.cierre.id)]);
+    return r.cierre;
+  };
 
   // aviso en vivo: comprobante nuevo → bip + banner 5 s
   useEffect(() => {
@@ -157,13 +182,14 @@ export default function Caja({ data, pedidos, qr, clave, conectado, salir }: {
             <div className="mt-2"><Conexion ok={conectado} /></div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-press-start text-[8px] px-2.5 py-1.5 tracking-wider bg-lima/15 text-lima border-2 border-lima/40">HOY Bs {hoy}</span>
+            <span title={`Hoy: Bs ${hoy}`} className="font-press-start text-[8px] px-2.5 py-1.5 tracking-wider bg-lima/15 text-lima border-2 border-lima/40">TURNO Bs {turnoTotal}</span>
             <button onClick={salir} className={BTN_LINEA}>Salir</button>
           </div>
         </div>
 
         {seccion('Por cobrar', porCobrar, 'nada por cobrar — los comprobantes y los pedidos en efectivo aparecen aquí')}
         {seccion('Cobrados', cobrados, 'aún no hay cobros confirmados')}
+        <CierreCaja nombre={data.nombre} desde={cierreDesde} cobros={cobrosTurno} cierres={cierres} onCerrar={cerrar} ocupado={cierreOcupado} error={cierreErr} />
         {seccion('Rechazados', rechazados, 'sin pagos rechazados')}
 
         {/* QR de cobro */}

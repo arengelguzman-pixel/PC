@@ -15,6 +15,10 @@
 //   GET  /qr                         {ok, qr}   POST /qr {clave, qr}        (caja)
 //   POST /agotados                   {clave, slugs[]}                       (cocina)
 //   POST /clave                      {clave} registra la 1ª vez; después valida
+//   GET  /cierres                    ?clave= → {ok, cierres[], cierreDesde}  (últimos 30, el más nuevo primero)
+//   POST /cierres                    {clave, efectivoContado?, nota?} → {ok, cierre}  (caja)
+//        Un cierre suma los cobros CONFIRMADOS desde el cierre anterior hasta ahora
+//        (total, por método, top de platos) y deja ese momento como inicio del turno.
 //
 // Los broadcasts nunca incluyen el comprobante (pesa); caja lo pide aparte.
 
@@ -44,13 +48,14 @@ export class Sala {
   publico(p) { const { comprobante, ...resto } = p; return resto; }
 
   async estado() {
-    const [mapa, agotados, qr] = await Promise.all([
+    const [mapa, agotados, qr, cierreDesde] = await Promise.all([
       this.ctx.storage.list({ prefix: 'p:' }),
       this.ctx.storage.get('agotados'),
       this.ctx.storage.get('qr'),
+      this.ctx.storage.get('cierreDesde'),
     ]);
     const pedidos = [...mapa.values()].sort((a, b) => b.creado - a.creado).slice(0, MAX_PEDIDOS).map((p) => this.publico(p));
-    return { pedidos, agotados: agotados || [], qr: qr || null };
+    return { pedidos, agotados: agotados || [], qr: qr || null, cierreDesde: cierreDesde || 0 };
   }
 
   broadcast(msg) {
@@ -74,10 +79,33 @@ export class Sala {
   // borra entregados+cerrados de hace más de 36 h para mantener liviana la sala
   async podar() {
     const corte = Date.now() - 36 * 3600 * 1000;
-    const mapa = await this.ctx.storage.list({ prefix: 'p:' });
+    const [mapa, cierreDesde] = await Promise.all([this.ctx.storage.list({ prefix: 'p:' }), this.ctx.storage.get('cierreDesde')]);
     const viejos = [];
-    for (const [k, p] of mapa) if (p.cocina === 'entregado' && p.actualizado < corte) viejos.push(k, 'c:' + p.id);
+    for (const [k, p] of mapa) {
+      // un cobro confirmado que todavía no entró en un cierre se conserva aunque sea viejo
+      const cobradoSinCerrar = p.pago === 'confirmado' && (p.confirmadoEn || p.actualizado) > (cierreDesde || 0);
+      if (p.cocina === 'entregado' && p.actualizado < corte && !cobradoSinCerrar) viejos.push(k, 'c:' + p.id);
+    }
     if (viejos.length) await this.ctx.storage.delete(viejos);
+  }
+
+  // Cobros confirmados en (desde, hasta] resumidos: total, por método y top de platos.
+  async resumirCobros(desde, hasta) {
+    const mapa = await this.ctx.storage.list({ prefix: 'p:' });
+    const cobros = [...mapa.values()].filter((p) => { const t = p.confirmadoEn || p.actualizado; return p.pago === 'confirmado' && t > desde && t <= hasta; });
+    const r = { pedidos: cobros.length, total: 0, qr: 0, efectivo: 0, qrN: 0, efectivoN: 0, top: [] };
+    const platos = new Map();
+    for (const p of cobros) {
+      r.total += p.total;
+      if (p.metodo === 'qr') { r.qr += p.total; r.qrN++; } else { r.efectivo += p.total; r.efectivoN++; }
+      for (const l of p.items) {
+        const n = l.tamT ? `${l.n} · ${l.tamT}` : l.n;
+        const a = platos.get(n) || { n, q: 0, total: 0 };
+        a.q += l.q; a.total += l.p * l.q; platos.set(n, a);
+      }
+    }
+    r.top = [...platos.values()].sort((a, b) => b.q - a.q || b.total - a.total).slice(0, 8);
+    return r;
   }
 
   // ---------- HTTP ----------
@@ -196,6 +224,35 @@ export class Sala {
       await this.ctx.storage.put('agotados', slugs);
       this.broadcast({ type: 'agotados', slugs });
       return json({ ok: true, slugs });
+    }
+
+    // --- cierre de caja (caja) ---
+    if (sub === '/cierres' && req.method === 'GET') {
+      const v = await this.verificarClave(url.searchParams.get('clave')); if (!v.ok) return json(v, 403);
+      const mapa = await this.ctx.storage.list({ prefix: 'z:' });
+      const cierres = [...mapa.values()].sort((a, b) => b.hasta - a.hasta).slice(0, 30);
+      return json({ ok: true, cierres, cierreDesde: (await this.ctx.storage.get('cierreDesde')) || 0 });
+    }
+    if (sub === '/cierres' && req.method === 'POST') {
+      const v = await this.verificarClave(body.clave); if (!v.ok) return json(v, 403);
+      const desde = (await this.ctx.storage.get('cierreDesde')) || 0;
+      const hasta = Date.now();
+      const r = await this.resumirCobros(desde, hasta);
+      if (!r.pedidos) return json({ ok: false, causa: 'sin_cobros', msg: 'No hay cobros confirmados desde el último cierre.' }, 400);
+      const seq = ((await this.ctx.storage.get('seqZ')) || 0) + 1;
+      const crudo = body.efectivoContado;
+      const contado = crudo === null || crudo === undefined || crudo === '' ? null : Number(crudo);
+      const cierre = {
+        id: 'Z-' + String(seq).padStart(3, '0'), desde, hasta,
+        pedidos: r.pedidos, total: r.total, qr: r.qr, efectivo: r.efectivo, qrN: r.qrN, efectivoN: r.efectivoN, top: r.top,
+        efectivoContado: Number.isFinite(contado) ? contado : null,
+        diferencia: Number.isFinite(contado) ? Math.round((contado - r.efectivo) * 100) / 100 : null,
+        nota: String(body.nota || '').slice(0, 200),
+      };
+      const k = 'z:' + String(seq).padStart(6, '0');
+      await this.ctx.storage.put({ [k]: cierre, seqZ: seq, cierreDesde: hasta });
+      this.broadcast({ type: 'cierre', hasta });        // solo el instante: los montos se piden con clave
+      return json({ ok: true, cierre });
     }
 
     // --- clave de personal ---

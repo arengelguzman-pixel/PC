@@ -3,6 +3,8 @@ import LogoMeza from '../components/LogoMeza';
 import { PLATOS, IMG, GLB, type Plato } from '../config';
 import { LOOKS, TPLS, paletaVars, type LookKey, type TplKey } from '../lib/carta';
 import Plate3D from '../components/Plate3D';
+import CierreCaja, { resumir, type Cobro } from './afiliado/CierreCaja';
+import type { Cierre } from '../lib/pedidos';
 
 // Menú con 2 pestañas:
 //  · COCINA/ADMIN → ve los pedidos, decide platos disponibles, gestiona mesas,
@@ -40,7 +42,10 @@ function beep() {
 
 export default function DemoMenu() {
   const [vista, setVista] = useState<'admin' | 'cliente'>('cliente');
-  const [adminTab, setAdminTab] = useState<'pedidos' | 'platos' | 'mesas' | 'diseno' | 'negocio'>('pedidos');
+  const [adminTab, setAdminTab] = useState<'pedidos' | 'caja' | 'platos' | 'mesas' | 'diseno' | 'negocio'>('pedidos');
+  // cierre de caja del demo: cada pedido entregado cuenta como cobrado en efectivo; se guarda en este navegador
+  const [cierres, setCierres] = useState<Cierre[]>(() => { try { return JSON.parse(localStorage.getItem('meza_demo_cierres') || '[]'); } catch { return []; } });
+  const [cerradoHasta, setCerradoHasta] = useState<number>(() => { try { return Number(localStorage.getItem('meza_demo_cierre_desde') || 0); } catch { return 0; } });
 
   const [negocio, setNegocio] = useState({ nombre: 'Doña Elsa', tipo: TIPOS[1], logo: '' });
   const [look, setLook] = useState<LookKey>('brasa');
@@ -87,6 +92,15 @@ export default function DemoMenu() {
 
   const enCurso = tickets.filter((k) => k.estado !== 'entregado');
   const nuevas = tickets.filter((k) => k.estado === 'nuevo').length;
+  const cobros: Cobro[] = tickets.filter((k) => k.estado === 'entregado' && k.nacido > cerradoHasta)
+    .map((k) => ({ id: `P-${String(k.id).padStart(3, '0')}`, total: k.total, metodo: 'efectivo' as const, items: k.items.map((i) => ({ n: i.n, q: i.q, p: i.p })), en: k.nacido }));
+  const cerrarCajaDemo = async (contado: number | null, nota: string) => {
+    const r = resumir(cobros); const hasta = Date.now();
+    const c: Cierre = { id: `Z-${String(cierres.length + 1).padStart(3, '0')}`, desde: cerradoHasta, hasta, ...r, efectivoContado: contado, diferencia: contado === null ? null : Math.round((contado - r.efectivo) * 100) / 100, nota };
+    const lista = [c, ...cierres]; setCierres(lista); setCerradoHasta(hasta);
+    try { localStorage.setItem('meza_demo_cierres', JSON.stringify(lista)); localStorage.setItem('meza_demo_cierre_desde', String(hasta)); } catch { /* */ }
+    return c;
+  };
   const ocupada = (m: number) => tickets.some((k) => k.mesa === m && k.estado !== 'entregado');
 
   return (
@@ -111,7 +125,7 @@ export default function DemoMenu() {
           <div className="max-w-5xl mx-auto px-4 py-6">
             {/* sub-nav admin */}
             <div className="flex gap-1.5 flex-wrap mb-6">
-              {([['pedidos', 'Pedidos'], ['platos', 'Platos'], ['mesas', 'Mesas'], ['diseno', 'Diseño'], ['negocio', 'Negocio']] as const).map(([k, t]) => (
+              {([['pedidos', 'Pedidos'], ['caja', 'Caja'], ['platos', 'Platos'], ['mesas', 'Mesas'], ['diseno', 'Diseño'], ['negocio', 'Negocio']] as const).map(([k, t]) => (
                 <button key={k} onClick={() => setAdminTab(k)} className={`font-press-start text-[8px] px-3 py-2.5 border-2 tracking-wider ${adminTab === k ? 'bg-maiz text-negro border-maiz' : 'text-crema/70 border-crema/25'}`}>{t}{k === 'pedidos' && nuevas ? ` ·${nuevas}` : ''}</button>
               ))}
             </div>
@@ -139,6 +153,14 @@ export default function DemoMenu() {
                     </div>
                   ))}
                 </div>
+              </section>
+            )}
+
+            {adminTab === 'caja' && (
+              <section>
+                <h2 className="font-press-start text-[11px] text-lima uppercase tracking-wide">Caja y cierre del día</h2>
+                <p className="text-sm text-crema/60 mt-2">Las ventas del turno se suman solas. Al final del día tocas “Cerrar caja”, cuentas el efectivo y queda el balance guardado. En este demo, cada pedido entregado cuenta como cobrado en efectivo.</p>
+                <CierreCaja nombre={negocio.nombre} desde={cerradoHasta} cobros={cobros} cierres={cierres} onCerrar={cerrarCajaDemo} />
               </section>
             )}
 

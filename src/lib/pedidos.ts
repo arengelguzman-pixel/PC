@@ -23,11 +23,24 @@ export type Pedido = {
   confirmadoEn?: number;
 };
 
+// Cierre de caja: cobros confirmados entre el cierre anterior y el momento del cierre.
+export type Cierre = {
+  id: string;                       // "Z-001"
+  desde: number; hasta: number;     // ms
+  pedidos: number; total: number;
+  qr: number; efectivo: number; qrN: number; efectivoN: number;
+  top: { n: string; q: number; total: number }[];
+  efectivoContado: number | null;   // lo que contó el personal (opcional)
+  diferencia: number | null;        // contado − efectivo esperado
+  nota: string;
+};
+
 export type EventoSala =
-  | { type: 'estado'; pedidos: Pedido[]; agotados: string[]; qr: string | null }
+  | { type: 'estado'; pedidos: Pedido[]; agotados: string[]; qr: string | null; cierreDesde?: number }
   | { type: 'pedido'; pedido: Pedido }
   | { type: 'agotados'; slugs: string[] }
-  | { type: 'qr'; qr: string | null };
+  | { type: 'qr'; qr: string | null }
+  | { type: 'cierre'; hasta: number };
 
 type Resp<T = object> = ({ ok: true } & T) | { ok: false; causa?: string; msg?: string };
 
@@ -63,6 +76,9 @@ export const verComprobante = (local: string, id: string, clave: string) =>
   get<{ comprobante: string }>(`${base(local)}/pedidos/${id}/comprobante?clave=${encodeURIComponent(clave)}`);
 export const guardarQr = (local: string, clave: string, qr: string | null) => post(`${base(local)}/qr`, { clave, qr });
 export const setAgotados = (local: string, clave: string, slugs: string[]) => post<{ slugs: string[] }>(`${base(local)}/agotados`, { clave, slugs });
+export const getCierres = (local: string, clave: string) => get<{ cierres: Cierre[]; cierreDesde: number }>(`${base(local)}/cierres?clave=${encodeURIComponent(clave)}`);
+export const cerrarCaja = (local: string, clave: string, efectivoContado: number | null, nota: string) =>
+  post<{ cierre: Cierre }>(`${base(local)}/cierres`, { clave, efectivoContado, nota });
 
 // ---- clave de personal guardada en este dispositivo ----
 const kClave = (local: string) => `pv_clave_${local}`;
