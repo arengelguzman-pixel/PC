@@ -49,6 +49,14 @@ Tarjetas QR de mesa (diseño MEZA, sin marca del local): `npx tsx scripts/qr-tar
 - Siempre hay algo que probar gratis. Nunca cerramos con "contáctanos"; cerramos con "pruébalo".
 - Frases de marca: *La mesa que atiende.* · *Tu carta ya no es un papel.* · *La misma comida, otra foto.* · *Escanean. Piden. Llega a la cocina.*
 
+## Jingle y campaña: PIDEMEZA (idea de Antonio, 8-oct-2026)
+
+- **El juego de palabras:** PIDEMEZA = *pídeme esa* = pide por MEZA = pide en la mesa/el menú. Se grita como pedido: **"¡PIDEMEZA pizza!"**, **"¡PIDEMEZA hamburguesa!"**, **"¡PIDEMEZA broaster!"**. Siempre con el plato del local al final: cada afiliado tiene su versión.
+- **Formato de las publicidades:** gente real (o avatar) *conversando* con VISOR Z o con la propia MEZA como si fuera el mesero: "—¿Qué te traigo? —¡PIDEMEZA una familiar, sin aceitunas!" … y la comanda aparece en la cocina. Sketch corto (10–15 s), remate con la voz de la app: *"¡Nueva comanda! Mesa cinco."* (ya existe como clip en `public/voz`).
+- **Jingle (base, 4 compases, ritmo de cumbia/cuarteto):** *"Pí-de-me-za, pí-de-me-za / lo que quieras, en tu mesa / escaneás, pedís y llega / ¡PIDEMEZA… (plato)!"* — la última palabra la grita el dueño del local.
+- **Dominio de campaña:** `pidemeza.com` está libre (visto 8-oct-2026); sirve de link corto para los anuncios (`pidemeza.com/garaje`).
+- Regla: el jingle es de ZETA/MEZA; el plato y la voz final son del local. Así la misma pieza se recicla para cada afiliado.
+
 ## Avatar (mascota de ZETA, en definición)
 
 Un solo personaje para todas las apps de ZETA (MEZA, facturación, abogados, asistente), que se "disfraza" según el producto. Sin rostro: metáfora de los negocios que aún no tienen forma digital; en video se cuenta como confusión → solución, nunca burlándose del cliente. No copiar al encapuchado de motionsites. Fondo rojo, ropa negra, acentos lima.
