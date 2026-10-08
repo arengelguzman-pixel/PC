@@ -60,6 +60,41 @@ del dueño → Iniciar. Desde ahí cada cierre le llega con el PDF.
 **Webhook (opcional):** `npx wrangler secret put WEBHOOK_CIERRE` con la URL de n8n/Make; recibe
 `{tipo:'cierre', local, cierre, resumen, pdfBase64, pdfNombre}` para reenviar por WhatsApp o correo.
 
+## Voz de avisos (ElevenLabs)
+
+Cocina anuncia cada comanda nueva con voz ("¡Nueva comanda! Mesa cinco") y la repite cada 20 s
+hasta tocar "Recibido"; Caja anuncia los comprobantes. Son clips MP3 pregrabados en `public/voz/`
+(`comanda[-mesa-N].mp3`, `comprobante[-mesa-N].mp3`, N = 1..10; voz "Cristina", modelo
+eleven_multilingual_v2). Para más mesas, generar los clips que falten con el mismo texto y voz.
+
+## Casilla "¿Algo en particular?"
+
+`personalizar: true` en el `Afiliado` muestra una casilla por pizza (sin aceitunas, bien cocida…).
+Viaja como `nota` dentro de cada línea y se ve en carrito, cocina y caja. En El Garaje real está
+apagada hasta que la dueña lo decida; en el sandbox está encendida.
+
+## Manual, capturas y videos tutoriales
+
+```bash
+node scripts/capturas-manual.mjs     # capturas reales del sandbox (puppeteer-core + Chrome)
+python scripts/manual-garaje.py      # PDF: entregas/manual/MEZA-manual-El-Garaje.pdf
+node scripts/videos-tutorial.mjs     # 4 videos verticales con narración: entregas/manual/videos/
+```
+
+La narración está en `entregas/manual/narracion/` (ElevenLabs, `meta.json` con duraciones).
+
+## Prototipos para nuevos locales
+
+`src/afiliados/prototipos.ts`: pollería, hamburguesería, comida cruceña y cafetería, cada uno con
+su link `/m/<token>` y sala propia (clave de personal de demo: `demo1234`). Para un local real:
+copiar el prototipo, cambiar nombre/WhatsApp/logo/platos y el token.
+
+## Links cortos (dominio propio)
+
+`ALIAS` en `worker/index.js` redirige `/garaje` → `/m/elgaraje-a3f9k2m8x1` (conserva `?mesa=`).
+Con un dominio propio en Cloudflare (Workers → Domains & Routes → Custom domain) queda
+`meza.link/garaje?mesa=3`.
+
 ## Regla de fidelidad
 
 La IA arregla la **foto**, nunca la **comida**. Los prompts van en duro en el
