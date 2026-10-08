@@ -81,9 +81,9 @@ export const elGaraje: Afiliado = {
     {
       k: 'hamburguesas', t: 'Hamburguesas', desc: 'Con papas fritas', porTamano: false,
       items: [
-        { slug: 'hamburguesa-simple', n: 'Hamburguesa simple', i: 'Carne, queso, lechuga, tomate y papas', p: 25, foto: `${F}/hamburguesa.jpg` },
-        { slug: 'hamburguesa-especial', n: 'Hamburguesa especial', i: 'Con huevo y tocino', p: 30, foto: `${F}/hamburguesa.jpg` },
-        { slug: 'hamburguesa-doble', n: 'Hamburguesa doble', i: 'Doble carne y doble queso', p: 36, foto: `${F}/hamburguesa.jpg` },
+        { slug: 'hamburguesa-simple', n: 'Hamburguesa simple', i: 'Con papas fritas', p: 25, foto: `${F}/hamburguesa.jpg` },
+        { slug: 'hamburguesa-especial', n: 'Hamburguesa especial', i: 'Con papas fritas', p: 30, foto: `${F}/hamburguesa.jpg` },
+        { slug: 'hamburguesa-doble', n: 'Hamburguesa doble', i: 'Doble carne · con papas fritas', p: 36, foto: `${F}/hamburguesa.jpg` },
       ],
     },
     {
