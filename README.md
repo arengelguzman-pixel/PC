@@ -89,11 +89,25 @@ La narración está en `entregas/manual/narracion/` (ElevenLabs, `meta.json` con
 su link `/m/<token>` y sala propia (clave de personal de demo: `demo1234`). Para un local real:
 copiar el prototipo, cambiar nombre/WhatsApp/logo/platos y el token.
 
-## Links cortos (dominio propio)
+## Dominio propio: pidemeza.com
 
-`ALIAS` en `worker/index.js` redirige `/garaje` → `/m/elgaraje-a3f9k2m8x1` (conserva `?mesa=`).
-Con un dominio propio en Cloudflare (Workers → Domains & Routes → Custom domain) queda
-`meza.link/garaje?mesa=3`.
+Comprado el 8-oct-2026 en Cloudflare Registrar, pero en la cuenta "Handy Mustard"
+(`4c612a80…`), distinta de la cuenta donde vive el Worker `meza` (`8b0e7626…`). Un dominio
+personalizado no puede cruzar cuentas, así que `worker-puerta/` es un Worker mínimo en la
+cuenta del dominio que reenvía todo (ruta, query, cuerpo, WebSocket) a
+`meza.arengel-guzman.workers.dev`:
+
+```bash
+npx wrangler deploy -c worker-puerta/wrangler.toml   # solo si cambia la puerta
+npm run build && npx wrangler deploy                  # el Worker principal, como siempre
+```
+
+`www.pidemeza.com` → `pidemeza.com`. El dominio workers.dev sigue vivo como respaldo.
+
+**Links cortos:** `ALIAS` en `worker/index.js` redirige `/garaje` → `/m/elgaraje-a3f9k2m8x1`
+conservando la query, así que los QR de las mesas y los enlaces del personal son
+`https://pidemeza.com/garaje?mesa=3`, `…/garaje?vista=cocina`, `…/garaje?vista=caja`.
+Para un local nuevo: agregar su alias al mapa y publicar.
 
 ## Regla de fidelidad
 

@@ -1,0 +1,13 @@
+# "Puerta" de pidemeza.com: el dominio se registró en la cuenta "Handy Mustard" y el Worker
+# principal (meza) vive en la otra cuenta; un dominio personalizado no puede cruzar cuentas,
+# así que este Worker mínimo recibe pidemeza.com y reenvía todo (incluido WebSocket) a meza.
+#   npx wrangler deploy -c worker-puerta/wrangler.toml
+name = "pidemeza"
+main = "index.js"
+account_id = "4c612a80a56d262b2892c569258db658"
+compatibility_date = "2026-08-26"
+workers_dev = false
+routes = [
+  { pattern = "pidemeza.com", custom_domain = true },
+  { pattern = "www.pidemeza.com", custom_domain = true },
+]

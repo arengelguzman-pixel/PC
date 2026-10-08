@@ -543,7 +543,7 @@ var index_default = {
     }
     // Links cortos por local (para el dominio propio): meza.link/garaje?mesa=3 → /m/<token>?mesa=3
     const alias = ALIAS[u.pathname.slice(1).toLowerCase()];
-    if (alias) return Response.redirect(new URL(`/m/${alias}${u.search}`, u).toString(), 302);
+    if (alias) return new Response(null, { status: 302, headers: { Location: `/m/${alias}${u.search}` } });   // relativa: sirve igual en pidemeza.com
     if (u.pathname === "/" || u.pathname.endsWith("/")) {
       return env.ASSETS.fetch(new Request(new URL(u.pathname + "index.html", u), request));
     }

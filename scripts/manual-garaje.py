@@ -13,8 +13,8 @@ IMG['tarjeta'] = R / 'entregas/el-garaje/tarjetas/mesa-1.png'
 for k, p in IMG.items(): assert p.exists(), (k, p)
 I = {k: u(p) for k, p in IMG.items()}
 
-URL = 'meza.arengel-guzman.workers.dev'
-L_CLIENTE = f'https://{URL}/m/elgaraje-a3f9k2m8x1'
+URL = 'pidemeza.com'
+L_CLIENTE = f'https://{URL}/garaje'
 L_COCINA = L_CLIENTE + '?vista=cocina'
 L_CAJA = L_CLIENTE + '?vista=caja'
 
