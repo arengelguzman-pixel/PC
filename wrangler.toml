@@ -3,18 +3,15 @@ main = "worker/index.js"
 compatibility_date = "2026-08-26"
 workers_dev = true
 
-# Dominio propio (Cloudflare Registrar): la landing y todos los menús viven aquí.
-# workers.dev sigue funcionando como respaldo.
-routes = [
-  { pattern = "pidemeza.com", custom_domain = true },
-  { pattern = "www.pidemeza.com", custom_domain = true },
-]
 
 # Sirve el build de Vite (dist/) como assets estáticos.
 [assets]
 directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"   # /nuevo, /?r=... → index.html
+# El Worker corre antes que los assets: si no, una navegación a /garaje recibe index.html
+# directamente y el alias (redirección) nunca se ejecuta.
+run_worker_first = true
 
 [vars]
 MOTOR = "gemini"

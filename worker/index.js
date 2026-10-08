@@ -544,9 +544,8 @@ var index_default = {
     // Links cortos por local (para el dominio propio): meza.link/garaje?mesa=3 → /m/<token>?mesa=3
     const alias = ALIAS[u.pathname.slice(1).toLowerCase()];
     if (alias) return new Response(null, { status: 302, headers: { Location: `/m/${alias}${u.search}` } });   // relativa: sirve igual en pidemeza.com
-    if (u.pathname === "/" || u.pathname.endsWith("/")) {
-      return env.ASSETS.fetch(new Request(new URL(u.pathname + "index.html", u), request));
-    }
+    // Assets (con run_worker_first): el binding sirve index.html para "/" y para rutas del SPA.
+    // No pedir "/index.html" a mano: el binding lo redirige a "/" y se arma un bucle.
     return env.ASSETS.fetch(request);
   }
 };
