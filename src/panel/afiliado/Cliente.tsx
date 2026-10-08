@@ -404,7 +404,9 @@ function HojaCarrito({ data, mesa, hayQr, carrito, total, cambiarQ, onClose, onP
 
         <div className="grid grid-cols-[1fr_auto] gap-2 mt-4">
           <input value={nota} onChange={(e) => setNota(e.target.value.slice(0, 120))} placeholder="Nota para la cocina (opcional)" className="bg-white/5 border border-white/10 rounded-xl px-3.5 py-3 text-sm outline-none focus:border-white/40" />
-          <input value={m} onChange={(e) => setM(e.target.value.replace(/[^0-9A-Za-z-]/g, '').slice(0, 6))} placeholder="Mesa" className="w-20 bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm text-center outline-none focus:border-white/40" />
+          {mesa
+            ? <div className="rounded-xl px-3.5 py-3 text-sm font-bold text-black whitespace-nowrap grid place-items-center" style={{ background: 'var(--oro)' }}>Mesa {mesa}</div>   // viene del QR: no se edita
+            : <input value={m} onChange={(e) => setM(e.target.value.replace(/[^0-9A-Za-z-]/g, '').slice(0, 6))} placeholder="Mesa" className="w-20 bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm text-center outline-none focus:border-white/40" />}
         </div>
 
         <p className="text-[11px] uppercase tracking-[0.18em] text-white/45 mt-5 mb-2">¿Cómo pagas?</p>
