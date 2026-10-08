@@ -16,6 +16,7 @@ export type Afiliado = {
   whatsapp: string;         // internacional para wa.me
   telefonoVisible: string;
   logo: string;
+  icono?: string;           // ícono cuadrado 180×180 para "Agregar a inicio" (si falta, se usa el logo)
   oro: string;              // color de marca
   personalizar?: boolean;   // casilla "¿Algo en particular?" por pizza (la dueña decide)
   tamanos: Tamano[];
@@ -33,6 +34,7 @@ export const elGaraje: Afiliado = {
   whatsapp: '59176013118',
   telefonoVisible: '760 13 118',
   logo: '/afiliados/el-garaje/logo.jpg',
+  icono: '/afiliados/el-garaje/icono-180.png',
   oro: '#F5B301',
   tamanos: [
     { k: 'personal', t: 'Personal', p: 25 },

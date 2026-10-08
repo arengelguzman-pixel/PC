@@ -39,6 +39,12 @@ export default function CartaAfiliado({ data }: { data: Afiliado }) {
     document.title = `${data.nombre} · Menú`;
     const m = document.createElement('meta'); m.name = 'robots'; m.content = 'noindex, nofollow';
     document.head.appendChild(m);
+    // ícono y nombre del local al "Agregar a inicio" (iPhone/Android): su logo, no el de MEZA
+    const icono = data.icono || data.logo;
+    document.querySelectorAll('link[rel="apple-touch-icon"], link[rel="icon"]').forEach((l) => l.remove());
+    for (const rel of ['apple-touch-icon', 'icon']) { const l = document.createElement('link'); l.rel = rel; l.href = icono; document.head.appendChild(l); }
+    const t = document.createElement('meta'); t.name = 'apple-mobile-web-app-title'; t.content = data.nombre; document.head.appendChild(t);
+    const c = document.createElement('meta'); c.name = 'theme-color'; c.content = '#0B0B0B'; document.head.appendChild(c);
     const cerrar = conectarSala(data.local, (e) => {
       if (e.type === 'estado') {
         setPedidos(Object.fromEntries(e.pedidos.map((p) => [p.id, p])));

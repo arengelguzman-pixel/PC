@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Afiliado } from '../../afiliados/elGaraje';
 import { avanzarCocina, setAgotados, mmss, minutos, type Pedido, type EstadoCocina } from '../../lib/pedidos';
-import { beep, voz, Conexion, Foto } from './comunes';
+import { beep, voz, Conexion, Foto, AvisoSonido } from './comunes';
 
 // Vista de Cocina (nuestra tipografía). El estado en vivo (pedidos / agotados)
 // llega por props desde el shell; aquí solo se actúa y se avisa:
@@ -155,6 +155,8 @@ export default function Cocina({ data, pedidos, agotados, clave, conectado, sali
           <button onClick={() => reconocer(ultima.id)} className="font-press-start text-[8px] bg-negro text-maiz px-3 py-2.5 shrink-0 uppercase tracking-wider">Recibido ✓</button>
         </div>
       )}
+
+      <AvisoSonido />
 
       {/* error en palabras normales */}
       {error && (

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Afiliado } from '../../afiliados/elGaraje';
 import { confirmarPago, verComprobante, guardarQr, comprimirImagen, getCierres, cerrarCaja, getDestino, codigoVinculo, quitarDestino, urlPdfCierre, urlArchivo, ETIQUETA_PAGO, type Pedido, type Cierre, type Destino } from '../../lib/pedidos';
-import { beep, voz, Conexion } from './comunes';
+import { beep, voz, Conexion, AvisoSonido } from './comunes';
 import CierreCaja, { type Cobro } from './CierreCaja';
 
 // Vista de Caja (nuestra tipografía). Confirma o rechaza pagos viendo el
@@ -33,6 +33,7 @@ export default function Caja({ data, pedidos, qr, cierreDesde, clave, conectado,
   const [aviso, setAviso] = useState('');
   const [qrCargando, setQrCargando] = useState(false);
   const [qrErr, setQrErr] = useState('');
+  const [verConfig, setVerConfig] = useState<boolean | null>(null);   // null = abierto solo si falta el QR
   const avisoTimer = useRef(0);
   const vistos = useRef<Set<string> | null>(null);
   const [cierres, setCierres] = useState<Cierre[]>([]);
@@ -203,18 +204,17 @@ export default function Caja({ data, pedidos, qr, cierreDesde, clave, conectado,
           </div>
         </div>
 
-        {seccion('Por cobrar', porCobrar, 'nada por cobrar — los comprobantes y los pedidos en efectivo aparecen aquí')}
-        {seccion('Cobrados', cobrados, 'aún no hay cobros confirmados')}
-        <CierreCaja nombre={data.nombre} desde={cierreDesde} cobros={cobrosTurno} cierres={cierres} onCerrar={cerrar} ocupado={cierreOcupado} error={cierreErr}
-          urlPdf={(id) => urlPdfCierre(data.local, id, clave)} urlComprobante={(z, p) => urlArchivo(data.local, z, p, clave)}
-          envio={destino ? { ...destino, onVincular: vincular, onDesvincular: desvincular, onRefrescar: refrescarDestino } : undefined} />
-        {seccion('Rechazados', rechazados, 'sin pagos rechazados')}
-
-        {/* QR de cobro */}
-        <section className="mt-10">
-          <h2 className="font-press-start text-[9px] text-lima tracking-widest uppercase mb-1">▸ QR de cobro del local</h2>
-          <p className="text-sm text-crema/55 mb-4">Es el QR de tu banco o billetera: el cliente lo escanea para pagar y luego sube el comprobante. Solo se cambia con la clave de personal.</p>
-          <div className="flex flex-col sm:flex-row gap-4 sm:items-start">
+        {/* Configuración del local: QR de cobro (arriba, para que la dueña lo vea) */}
+        <section className="mt-6 border-2 border-crema/15 bg-carbon p-3">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <h2 className="font-press-start text-[9px] text-lima tracking-widest uppercase">⚙ Configuración · QR de cobro</h2>
+            <button onClick={() => setVerConfig((v) => !(v ?? !qr))} className={BTN_LINEA}>{(verConfig ?? !qr) ? 'Ocultar' : qr ? 'Ver / cambiar' : 'Configurar'}</button>
+          </div>
+          <p className="text-sm text-crema/55 mt-2">{qr ? 'QR cargado: en el menú de las mesas el cliente elige “Pagar con QR” o “Pagar en efectivo”.' : 'Sin QR: los clientes solo pueden pagar en efectivo. Sube la imagen del QR de tu banco o billetera y aparecerá “Pagar con QR” en los menús de las mesas.'}</p>
+          {(verConfig ?? !qr) && (
+            <div className="mt-4">
+              <p className="text-xs text-crema/45 mb-3">Es el mismo QR impreso del local. El cliente lo escanea, paga desde su banco y sube el comprobante; tú lo confirmas aquí. Solo se cambia con la clave de personal.</p>
+              <div className="flex flex-col sm:flex-row gap-4 sm:items-start">
             {qr
               ? <img src={qr} alt="QR de cobro" className="w-full max-w-[280px] border-[3px] border-crema/20 bg-white" />
               : <div className="w-full max-w-[280px] aspect-square border-2 border-dashed border-crema/25 grid place-items-center p-6 text-center font-mono text-xs text-crema/40">sin QR — sube la imagen del QR de tu banco o billetera para cobrar por QR</div>}
@@ -227,7 +227,18 @@ export default function Caja({ data, pedidos, qr, cierreDesde, clave, conectado,
               {qrErr && <p className="text-xs text-brasa max-w-[280px]">{qrErr}</p>}
             </div>
           </div>
+            </div>
+          )}
         </section>
+
+        {seccion('Por cobrar', porCobrar, 'nada por cobrar — los comprobantes y los pedidos en efectivo aparecen aquí')}
+        {seccion('Cobrados', cobrados, 'aún no hay cobros confirmados')}
+        <CierreCaja nombre={data.nombre} desde={cierreDesde} cobros={cobrosTurno} cierres={cierres} onCerrar={cerrar} ocupado={cierreOcupado} error={cierreErr}
+          urlPdf={(id) => urlPdfCierre(data.local, id, clave)} urlComprobante={(z, p) => urlArchivo(data.local, z, p, clave)}
+          envio={destino ? { ...destino, onVincular: vincular, onDesvincular: desvincular, onRefrescar: refrescarDestino } : undefined} />
+        {seccion('Rechazados', rechazados, 'sin pagos rechazados')}
+
+
       </div>
 
       {/* modal: comprobante a tamaño completo */}
@@ -251,6 +262,7 @@ export default function Caja({ data, pedidos, qr, cierreDesde, clave, conectado,
           </div>
         </div>
       )}
+      <AvisoSonido />
     </div>
   );
 }

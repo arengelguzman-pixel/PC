@@ -30,28 +30,73 @@ export function Hoja({ onClose, children }: { onClose: () => void; children: Rea
   );
 }
 
-// Bip corto (WebAudio). `repetir` para alarmas insistentes de cocina.
-export function beep(tono = 880, dur = 0.24) {
+// --- Sonido: bip (WebAudio) + voz (MP3 de ElevenLabs en /public/voz) ---
+// iPhone/Android solo dejan sonar audio que se "desbloqueó" dentro de un toque del
+// usuario. Por eso hay UN solo <audio> y UN solo AudioContext, que se crean y arrancan
+// en `desbloquearSonido()` (lo llama el primer toque en la pantalla, la puerta de
+// clave y el botón "Activar sonido"). Después, voz() y beep() los reutilizan.
+let audioVoz: HTMLAudioElement | null = null;
+let ctxBeep: AudioContext | null = null;
+let sonidoListo = false;
+const oyentes = new Set<(ok: boolean) => void>();
+
+export function desbloquearSonido() {
   try {
     const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new AC(); const o = ctx.createOscillator(), g = ctx.createGain();
+    if (!ctxBeep) ctxBeep = new AC();
+    if (ctxBeep.state === 'suspended') ctxBeep.resume().catch(() => {});
+    if (!audioVoz) { audioVoz = new Audio(); audioVoz.preload = 'auto'; }
+    audioVoz.src = '/voz/silencio.mp3'; audioVoz.volume = 1;
+    audioVoz.play().then(() => { sonidoListo = true; oyentes.forEach((f) => f(true)); }).catch(() => {});
+  } catch { /* sin audio */ }
+}
+export const haySonido = () => sonidoListo;
+
+// true cuando el audio ya se desbloqueó en esta carga; el primer toque en la pantalla lo intenta solo
+export function useSonidoListo(): [boolean, () => void] {
+  const [listo, setListo] = useState(sonidoListo);
+  useEffect(() => {
+    oyentes.add(setListo);
+    const primero = () => desbloquearSonido();
+    document.addEventListener('click', primero, { once: true });
+    document.addEventListener('touchend', primero, { once: true });
+    return () => { oyentes.delete(setListo); document.removeEventListener('click', primero); document.removeEventListener('touchend', primero); };
+  }, []);
+  return [listo, desbloquearSonido];
+}
+
+// Aviso fijo abajo mientras el sonido no esté activo (cocina/caja).
+export function AvisoSonido() {
+  const [listo, activar] = useSonidoListo();
+  if (listo) return null;
+  return (
+    <button onClick={activar} className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[96] w-[94%] max-w-lg bg-lima text-negro border-[3px] border-negro shadow-[6px_6px_0_var(--color-rojo)] px-4 py-3.5 flex items-center gap-3 text-left">
+      <span className="text-2xl">🔈</span>
+      <span className="font-press-start text-[9px] leading-relaxed tracking-wide">TOCA AQUÍ PARA ACTIVAR EL SONIDO Y LA VOZ</span>
+    </button>
+  );
+}
+
+// Bip corto. Usa el AudioContext desbloqueado; si no existe, intenta crear uno.
+export function beep(tono = 880, dur = 0.24) {
+  try {
+    if (!ctxBeep) { const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext; ctxBeep = new AC(); }
+    const ctx = ctxBeep; if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    const o = ctx.createOscillator(), g = ctx.createGain();
     o.connect(g); g.connect(ctx.destination); g.gain.value = 0.07; o.type = 'square';
     o.frequency.setValueAtTime(tono, ctx.currentTime); o.frequency.setValueAtTime(tono * 1.5, ctx.currentTime + dur / 2);
-    o.start(); o.stop(ctx.currentTime + dur); setTimeout(() => ctx.close(), 600);
+    o.start(); o.stop(ctx.currentTime + dur);
   } catch { /* sin audio */ }
 }
 
-// Voz (clips MP3 pregrabados con ElevenLabs en /public/voz). `mesa` 1–10 tiene
-// su propio clip; cualquier otra cosa usa el genérico. Un solo <audio> para que
-// el navegador no apile avisos; si el navegador bloquea el audio, no pasa nada.
-let audioVoz: HTMLAudioElement | null = null;
+// Voz: `mesa` 1–10 tiene su propio clip; cualquier otra cosa usa el genérico.
 export function voz(tipo: 'comanda' | 'comprobante', mesa?: string) {
   try {
     const n = Number(mesa);
     const src = `/voz/${tipo}${n >= 1 && n <= 10 && Number.isInteger(n) ? `-mesa-${n}` : ''}.mp3`;
-    if (!audioVoz) audioVoz = new Audio();
+    if (!audioVoz) { audioVoz = new Audio(); audioVoz.preload = 'auto'; }
     audioVoz.src = src; audioVoz.volume = 1;
-    audioVoz.play().catch(() => { /* sin permiso de audio todavía */ });
+    audioVoz.play().catch(() => { /* bloqueado hasta que el usuario toque la pantalla */ });
   } catch { /* sin audio */ }
 }
 
@@ -61,6 +106,7 @@ export function PuertaClave({ local, onOk }: { local: string; onOk: (clave: stri
   const [err, setErr] = useState('');
   const [cargando, setCargando] = useState(false);
   const entrar = async () => {
+    desbloquearSonido();   // el toque en "Entrar" habilita bip y voz en iPhone/Android
     setErr(''); setCargando(true);
     const r = await registrarClave(local, c.trim());
     setCargando(false);

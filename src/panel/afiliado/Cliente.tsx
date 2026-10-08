@@ -410,7 +410,7 @@ function HojaCarrito({ data, mesa, hayQr, carrito, total, cambiarQ, onClose, onP
         <p className="text-[11px] uppercase tracking-[0.18em] text-white/45 mt-5 mb-2">¿Cómo pagas?</p>
         <div className="flex gap-2">
           {hayQr && opcion('qr', 'Pagar con QR', 'Escaneas el QR del local y subes tu comprobante')}
-          {opcion('efectivo', 'Pagar en caja', 'Efectivo al recibir o al pasar por caja')}
+          {opcion('efectivo', 'Pagar en efectivo', 'Al recibir el pedido o al pasar por caja')}
         </div>
 
         <div className="flex items-baseline justify-between mt-5 pt-4 border-t border-white/10">

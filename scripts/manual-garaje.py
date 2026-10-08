@@ -114,10 +114,10 @@ pages.append(f"""
     <div class="check"><i></i><div><b>El celular de cocina está cargado</b> y conectado a internet (wifi o datos). Lo ideal: enchufado todo el turno.</div></div>
     <div class="check"><i></i><div><b>Volumen al máximo</b> en el celular de cocina. La voz dice “¡Nueva comanda! Mesa cinco”. Si está en silencio, no se escucha.</div></div>
     <div class="check"><i></i><div><b>Abrir el enlace de Cocina</b> en Chrome y dejarlo abierto. Tiene que decir <span class="chip" style="color:#5a8a00">● EN VIVO</span> arriba a la izquierda.</div></div>
-    <div class="check"><i></i><div><b>Tocar “Sonido ON”</b> una vez (queda en verde). Si pide “Activar avisos”, tocar y aceptar.</div></div>
+    <div class="check"><i></i><div><b>Tocar el cartel verde “Toca aquí para activar el sonido y la voz”</b> que aparece abajo al abrir Cocina o Caja (el celular no deja sonar nada hasta que alguien toca la pantalla). “Sonido ON” debe quedar en verde.</div></div>
     <div class="check"><i></i><div><b>Abrir el enlace de Caja</b> en el celular de caja. También tiene que decir “en vivo”.</div></div>
     <div class="check"><i></i><div><b>Los 10 QR están en sus mesas</b> (mesa 1 en la mesa 1, mesa 2 en la mesa 2…). Cada tarjeta tiene su número.</div></div>
-    <div class="check"><i></i><div><b>El QR de cobro del local está subido</b> en Caja (una sola vez; queda guardado). Si no está, los clientes solo podrán pagar en efectivo.</div></div>
+    <div class="check"><i></i><div><b>El QR de cobro del local está subido</b> en Caja → “Configuración · QR de cobro” (una sola vez; queda guardado). Si no está, los clientes solo podrán pagar en efectivo.</div></div>
   </div>
   <h2>Los tres enlaces (guárdalos en el celular)</h2>
   <p><b>Cliente</b> (este es el que está en los QR de las mesas; no hace falta escribirlo):</p>
@@ -158,7 +158,7 @@ pages.append(f"""
     {tel('c7-seguimiento', 'Pedido enviado. Abajo, en “Seguimiento”, ve cómo avanza.')}
     <div class="col">
       {paso(4, 'Toca “Agregar”', '<p>La pizza se guarda y abajo aparece una <b>barra amarilla</b>: “1 · Ver mi pedido · Bs 65”. Puede seguir agregando más cosas.</p>')}
-      {paso(5, 'Toca “Ver mi pedido”', '<p>Revisa su pedido. Puede sumar o restar con + y −. Puede escribir una <b>nota para la cocina</b> y ver el número de <b>mesa</b> (ya viene puesto).</p><p>Elige <b>cómo paga</b>: “Pagar con QR” o “Pagar en caja” (efectivo).</p>')}
+      {paso(5, 'Toca “Ver mi pedido”', '<p>Revisa su pedido. Puede sumar o restar con + y −. Puede escribir una <b>nota para la cocina</b> y ver el número de <b>mesa</b> (ya viene puesto).</p><p>Elige <b>cómo paga</b>: “Pagar con QR” o “Pagar en efectivo”.</p>')}
       {paso(6, 'Toca “Hacer pedido”', '<p>¡Listo! En ese mismo segundo la comanda aparece en la cocina y suena la alarma.</p><p>El cliente ve un aviso: “Pedido P-009 enviado”. Y abajo, en <b>Seguimiento</b>, ve cuando pasa a “en horno”, “lista” y “entregada”.</p>')}
       <div class="ok">Si el cliente cierra la página sin querer, vuelve a escanear el QR: <b>su pedido sigue ahí</b>, en Seguimiento.</div>
     </div>
@@ -174,7 +174,7 @@ pages.append(f"""
   <div class="fila">
     <div class="col">
       {paso(7, 'Ve el QR del local', '<p>Apenas hace el pedido se abre “Pagar con QR”: el <b>monto exacto</b> y el QR de cobro de El Garaje (el que subió Caja).</p><p>Lo escanea con la app de su banco o billetera. Si está en el mismo celular, toca “Guardar imagen del QR” y la abre desde la app del banco.</p>')}
-      {paso(8, 'Sube la foto del comprobante', '<p>Toca <b>“Subir comprobante”</b> (elige la captura) o <b>“Tomar foto del comprobante”</b>. La foto viaja a Caja.</p><p>Ve “Comprobante enviado, esperando a caja”. Puede cerrar la ventana y seguir mirando la carta.</p>')}
+      {paso(8, 'Sube la foto del comprobante', '<p>Toca <b>“Subir comprobante”</b> (elige la captura) o <b>“Tomar foto del comprobante”</b>. La foto viaja a Caja. Si prefiere, puede elegir “Pagar en efectivo” y pagar al recibir.</p><p>Ve “Comprobante enviado, esperando a caja”. Puede cerrar la ventana y seguir mirando la carta.</p>')}
       {paso(9, 'Caja confirma', '<p>Cuando Caja revisa la foto y toca “Confirmar pago”, el cliente recibe el aviso <b>“Pago confirmado”</b>. Si Caja lo rechaza (foto borrosa, monto distinto), le aparece <b>“Vuelve a subirlo”</b> y puede subir otra foto.</p>')}
       <div class="ojo"><b>Importante:</b> MEZA <b>no mueve dinero</b>. El pago lo hace el cliente con su banco, como siempre. MEZA solo lleva la foto del comprobante a Caja y la guarda 90 días.</div>
     </div>
@@ -294,7 +294,7 @@ pages.append(f"""
       {paso(3, 'Toca “Confirmar pago ✓”', '<p>Si todo cuadra. El pedido pasa a COBRADOS y el cliente recibe “Pago confirmado”. La foto queda guardada 90 días.</p>')}
       {paso(4, 'O toca “Rechazar ✗”', '<p>Si la foto está borrosa, el monto no coincide o parece repetida. Al cliente le aparece “Vuelve a subirlo”. Nada se pierde.</p>')}
       <h2>El QR de cobro del local</h2>
-      <p>Al final de la pantalla de Caja está <b>“QR de cobro”</b>. Ahí se sube <b>una sola vez</b> la imagen del QR del banco del local (el mismo que tienen impreso). Si se cambia de cuenta, se toca “Quitar” y se sube el nuevo.</p>
+      <p>Arriba de todo en Caja está <b>“Configuración · QR de cobro”</b>. Ahí la dueña sube <b>una sola vez</b> la imagen del QR de su banco o billetera (el mismo que tienen impreso). Desde ese momento, en el menú de cada mesa el cliente puede elegir <b>“Pagar con QR”</b> o <b>“Pagar en efectivo”</b>. Si se cambia de cuenta, se toca “Quitar” y se sube el nuevo.</p>
       <div class="no"><b>Nunca</b> confirmes un pago sin ver la foto. Si dudas, pide al cliente que te muestre la pantalla de su banco.</div>
     </div>
   </div>
@@ -338,7 +338,7 @@ pages.append(f"""
     <tr><td>Se cortó internet</td><td>Arriba dice <b style="color:#E11B14">● reconectando…</b> en rojo.</td><td>Revisa el wifi o los datos del celular. Espera: la app se reconecta sola y trae los pedidos que llegaron mientras tanto. <b>No se pierde nada.</b></td></tr>
     <tr><td>La pantalla se quedó pegada o se ve rara</td><td>No cambia nada al tocar, o faltan botones.</td><td>Desliza hacia abajo para recargar (o toca ↻ en Chrome). Si sigue igual: cierra Chrome del todo y vuelve a abrir el enlace.</td></tr>
     <tr><td>Pide la clave otra vez</td><td>La pantalla “Personal del local”.</td><td>Escribe la misma clave de siempre. Pasa si alguien tocó “Salir” o se borraron datos de Chrome.</td></tr>
-    <tr><td>No suena</td><td>Llega una comanda pero no hay alarma ni voz.</td><td>1) Sube el volumen del celular. 2) Mira que “Sonido” esté en <b>ON</b> (verde). 3) Toca cualquier botón de la pantalla una vez (Chrome necesita un toque para permitir sonido). 4) Recarga.</td></tr>
+    <tr><td>No suena</td><td>Llega una comanda pero no hay alarma ni voz.</td><td>1) Si está el cartel verde “Toca aquí para activar el sonido”, tócalo. 2) Sube el volumen y quita el modo silencio del celular (en iPhone, la palanquita del costado). 3) Mira que “Sonido” esté en <b>ON</b>. 4) Recarga y vuelve a tocar el cartel.</td></tr>
     <tr><td>No llega una comanda que el cliente dice que envió</td><td>El cliente ve “Pedido P-0XX enviado” pero cocina no lo ve.</td><td>Mira que cocina diga “en vivo”. Recarga la pantalla de cocina. Pide al cliente el número del pedido (P-0XX) y búscalo en el filtro “Nuevas” o “En curso”.</td></tr>
     <tr><td>El cliente no puede escanear</td><td>El QR no abre nada.</td><td>Que use la cámara normal (no WhatsApp). Si el celular es viejo, que escriba el enlace del cliente (página 3) y ponga su mesa a mano en “Tu pedido”.</td></tr>
     <tr><td>El cliente no ve el QR de pago</td><td>Solo aparece “Pagar en caja”.</td><td>Caja no tiene subido el QR de cobro. Subirlo en Caja → “QR de cobro”. Mientras tanto cobra en efectivo o muestra el QR impreso.</td></tr>
