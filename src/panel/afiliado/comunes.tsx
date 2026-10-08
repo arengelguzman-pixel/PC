@@ -41,6 +41,20 @@ export function beep(tono = 880, dur = 0.24) {
   } catch { /* sin audio */ }
 }
 
+// Voz (clips MP3 pregrabados con ElevenLabs en /public/voz). `mesa` 1–10 tiene
+// su propio clip; cualquier otra cosa usa el genérico. Un solo <audio> para que
+// el navegador no apile avisos; si el navegador bloquea el audio, no pasa nada.
+let audioVoz: HTMLAudioElement | null = null;
+export function voz(tipo: 'comanda' | 'comprobante', mesa?: string) {
+  try {
+    const n = Number(mesa);
+    const src = `/voz/${tipo}${n >= 1 && n <= 10 && Number.isInteger(n) ? `-mesa-${n}` : ''}.mp3`;
+    if (!audioVoz) audioVoz = new Audio();
+    audioVoz.src = src; audioVoz.volume = 1;
+    audioVoz.play().catch(() => { /* sin permiso de audio todavía */ });
+  } catch { /* sin audio */ }
+}
+
 // Puerta de clave de personal (cocina/caja): registra la primera vez, valida después.
 export function PuertaClave({ local, onOk }: { local: string; onOk: (clave: string) => void }) {
   const [c, setC] = useState('');

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Afiliado } from '../../afiliados/elGaraje';
 import { confirmarPago, verComprobante, guardarQr, comprimirImagen, getCierres, cerrarCaja, getDestino, codigoVinculo, quitarDestino, urlPdfCierre, urlArchivo, ETIQUETA_PAGO, type Pedido, type Cierre, type Destino } from '../../lib/pedidos';
-import { beep, Conexion } from './comunes';
+import { beep, voz, Conexion } from './comunes';
 import CierreCaja, { type Cobro } from './CierreCaja';
 
 // Vista de Caja (nuestra tipografía). Confirma o rechaza pagos viendo el
@@ -90,7 +90,7 @@ export default function Caja({ data, pedidos, qr, cierreDesde, clave, conectado,
     if (vistos.current) {
       const nuevos = porConfirmar.filter((p) => !vistos.current!.has(p.id));
       if (nuevos.length) {
-        beep();
+        beep(); voz('comprobante', nuevos[0].mesa);
         setAviso(`Nuevo comprobante · ${nuevos[0].id} · Bs ${nuevos[0].total}${nuevos.length > 1 ? ` (+${nuevos.length - 1})` : ''}`);
         clearTimeout(avisoTimer.current);
         avisoTimer.current = window.setTimeout(() => setAviso(''), 5000);
@@ -159,7 +159,7 @@ export default function Caja({ data, pedidos, qr, cierreDesde, clave, conectado,
           <span className={`font-press-start text-[7px] px-2 py-1 tracking-wider ${colorPago(p)}`}>{ETIQUETA_PAGO[p.pago].toUpperCase()}</span>
         </div>
         <ul className="mt-2 font-mono text-xs text-crema/85 leading-relaxed">
-          {p.items.map((l) => <li key={l.key}>{l.q}× {l.n}{l.tamT ? ` · ${l.tamT}` : ''}{l.borde ? ' · borde' : ''}</li>)}
+          {p.items.map((l) => <li key={l.key}>{l.q}× {l.n}{l.tamT ? ` · ${l.tamT}` : ''}{l.borde ? ' · borde' : ''}{l.nota ? ` — ${l.nota}` : ''}</li>)}
         </ul>
         {p.nota && <p className="mt-2 text-xs text-maiz italic">“{p.nota}”</p>}
         <div className="flex justify-between items-center gap-2 mt-3 pt-2 border-t border-crema/10">

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Afiliado } from '../../afiliados/elGaraje';
 import { avanzarCocina, setAgotados, mmss, minutos, type Pedido, type EstadoCocina } from '../../lib/pedidos';
-import { beep, Conexion, Foto } from './comunes';
+import { beep, voz, Conexion, Foto } from './comunes';
 
 // Vista de Cocina (nuestra tipografía). El estado en vivo (pedidos / agotados)
 // llega por props desde el shell; aquí solo se actúa y se avisa:
@@ -53,6 +53,8 @@ export default function Cocina({ data, pedidos, agotados, clave, conectado, sali
   const [, setTick] = useState(0);
   const vistos = useRef<Set<string> | null>(null);
   const tonoAlto = useRef(false);
+  const sonidoRef = useRef(true);
+  sonidoRef.current = sonido;
 
   // reloj vivo para los mm:ss
   useEffect(() => { const t = window.setInterval(() => setTick((x) => x + 1), 1000); return () => clearInterval(t); }, []);
@@ -68,18 +70,23 @@ export default function Cocina({ data, pedidos, agotados, clave, conectado, sali
 
   const reconocer = (id: string) => setAcks((a) => { if (a.includes(id)) return a; const n = [...a, id]; guardarAcks(data.local, n); return n; });
 
-  // alarma: bip alternado cada 4 s + vibración mientras haya comandas sin reconocer
+  // alarma: bip alternado cada 4 s + vibración mientras haya comandas sin reconocer;
+  // cada 20 s la voz repite la mesa de la comanda más vieja sin reconocer
+  const ultimaMesa = ultima?.mesa;
   useEffect(() => {
     if (!nPend || !sonido) return;
+    let ciclo = 0;
     const sonar = () => {
       tonoAlto.current = !tonoAlto.current;
       beep(tonoAlto.current ? 1320 : 880);
       try { navigator.vibrate?.([200, 100, 200]); } catch { /* sin vibración */ }
+      if (ciclo > 0 && ciclo % 5 === 0) voz('comanda', ultimaMesa);
+      ciclo++;
     };
     sonar();
     const t = window.setInterval(sonar, 4000);
     return () => clearInterval(t);
-  }, [nPend, sonido]);
+  }, [nPend, sonido, ultimaMesa]);
 
   // título parpadeando mientras haya comandas sin reconocer
   useEffect(() => {
@@ -92,14 +99,17 @@ export default function Cocina({ data, pedidos, agotados, clave, conectado, sali
     return () => { clearInterval(t); document.title = normal; };
   }, [nPend]);
 
-  // avisos del sistema: solo para ids nunca vistos y recién creados (lo viejo no avisa)
+  // voz + avisos del sistema: solo para ids nunca vistos y recién creados (lo viejo no avisa)
   useEffect(() => {
     if (!vistos.current) { vistos.current = new Set(pedidos.map((p) => p.id)); return; }
     const ahora = Date.now();
+    let anunciada = false;
     for (const p of pedidos) {
       if (vistos.current.has(p.id)) continue;
       vistos.current.add(p.id);
-      if (p.cocina !== 'nuevo' || ahora - p.creado > 120000 || permiso !== 'granted') continue;
+      if (p.cocina !== 'nuevo' || ahora - p.creado > 120000) continue;
+      if (sonidoRef.current && !anunciada) { voz('comanda', p.mesa); anunciada = true; }
+      if (permiso !== 'granted') continue;
       try { new Notification(`Nueva comanda · ${p.mesa ? `Mesa ${p.mesa}` : p.id}`, { body: resumen(p), tag: p.id }); } catch { /* sin avisos */ }
     }
   }, [pedidos, permiso]);
@@ -164,7 +174,7 @@ export default function Cocina({ data, pedidos, agotados, clave, conectado, sali
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <span className={`font-press-start text-[8px] px-2 py-1.5 tracking-wider ${nPend ? 'bg-maiz text-negro animate-pulse' : 'bg-crema/15 text-crema/60'}`}>{nPend} NUEVA(S)</span>
-            <button onClick={() => setSonido((s) => { if (!s) beep(880); return !s; })} className={`font-press-start text-[8px] border-2 px-2.5 py-1.5 uppercase tracking-wider ${sonido ? 'text-lima border-lima' : 'text-crema/70 border-crema/25'}`}>Sonido {sonido ? 'ON' : 'OFF'}</button>
+            <button onClick={() => setSonido((s) => { if (!s) voz('comanda'); return !s; })} className={`font-press-start text-[8px] border-2 px-2.5 py-1.5 uppercase tracking-wider ${sonido ? 'text-lima border-lima' : 'text-crema/70 border-crema/25'}`}>Sonido {sonido ? 'ON' : 'OFF'}</button>
             {soportaAvisos && permiso === 'default' && <button onClick={activarAvisos} className="font-press-start text-[8px] text-crema/70 border-2 border-crema/25 px-2.5 py-1.5 uppercase tracking-wider">Activar avisos</button>}
             {soportaAvisos && permiso === 'granted' && <span className="font-mono text-[10px] text-lima">avisos ✓</span>}
             {soportaAvisos && permiso === 'denied' && <span className="font-mono text-[10px] text-crema/40">avisos bloqueados</span>}
@@ -202,7 +212,7 @@ export default function Cocina({ data, pedidos, agotados, clave, conectado, sali
                   <span className={`font-press-start text-[7px] px-2 py-1 tracking-wider ${cPago}`}>{tPago}</span>
                 </div>
                 <ul className="mt-2 font-mono text-xs text-crema/85 leading-relaxed">
-                  {p.items.map((l) => <li key={l.key}>{l.q}× {l.n}{l.tamT ? ` · ${l.tamT}` : ''}{l.borde ? ' · borde' : ''}</li>)}
+                  {p.items.map((l) => <li key={l.key}>{l.q}× {l.n}{l.tamT ? ` · ${l.tamT}` : ''}{l.borde ? ' · borde' : ''}{l.nota && <span className="text-maiz"> — {l.nota}</span>}</li>)}
                 </ul>
                 {p.nota && <p className="mt-2 text-xs text-maiz italic">“{p.nota}”</p>}
                 {pend && (

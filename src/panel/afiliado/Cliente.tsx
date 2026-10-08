@@ -15,7 +15,7 @@ const PASOS: { k: Pedido['cocina']; t: string }[] = [
   { k: 'nuevo', t: 'Recibido' }, { k: 'preparando', t: 'En el horno' }, { k: 'listo', t: 'Listo' }, { k: 'entregado', t: 'Entregado' },
 ];
 const COLOR_PAGO: Record<Pedido['pago'], string> = { pendiente: 'text-white/60', por_confirmar: 'text-maiz', confirmado: 'text-lima', rechazado: 'text-brasa' };
-const lineaTxt = (l: Linea) => `${l.q}× ${l.n}${l.tamT ? ` (${l.tamT}${l.borde ? ', borde de queso' : ''})` : ''}`;
+const lineaTxt = (l: Linea) => `${l.q}× ${l.n}${l.tamT ? ` (${l.tamT}${l.borde ? ', borde de queso' : ''})` : ''}${l.nota ? ` — ${l.nota}` : ''}`;
 const resumenDe = (p: Pedido) => p.items.map(lineaTxt).join(', ');
 const textoWhatsApp = (data: Afiliado, p: Pedido) =>
   `🍕 Pedido ${p.id} · ${data.nombre}${p.mesa ? `\nMesa ${p.mesa}` : ''}\n\n${p.items.map((l) => `• ${lineaTxt(l)} — Bs ${l.p * l.q}`).join('\n')}\n\nTotal: Bs ${p.total}\nPago: ${ETIQUETA_PAGO[p.pago]}${p.nota ? `\nNota: ${p.nota}` : ''}`;
@@ -82,14 +82,14 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
     }
   });
 
-  const agregar = (item: Item, tam: Tamano | null, borde: boolean, q: number) => {
+  const agregar = (item: Item, tam: Tamano | null, borde: boolean, q: number, nota = '') => {
     const p = tam ? precioDe(tam, borde) : (item.p ?? 0);
     if (!p) return;
-    const key = `${item.slug}|${tam?.k ?? '-'}|${borde ? 'b' : ''}`;
+    const key = `${item.slug}|${tam?.k ?? '-'}|${borde ? 'b' : ''}${nota ? `|${nota.toLowerCase()}` : ''}`;
     setCarrito((c) => {
       const i = c.findIndex((l) => l.key === key);
       if (i >= 0) { const n = [...c]; n[i] = { ...n[i], q: n[i].q + q }; return n; }
-      return [...c, { key, slug: item.slug, n: item.n, tamK: tam?.k ?? '', tamT: tam?.t ?? '', borde, p, q }];
+      return [...c, { key, slug: item.slug, n: item.n, tamK: tam?.k ?? '', tamT: tam?.t ?? '', borde, p, q, ...(nota ? { nota } : {}) }];
     });
     avisar(`Agregado · ${item.n}${tam ? ` ${tam.t}` : ''}`, 1600);
   };
@@ -233,7 +233,7 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
       )}
 
       {/* hoja: detalle de pizza (tamaño + borde + cantidad) */}
-      {detalle && <HojaDetalle data={data} item={detalle} onClose={() => setDetalle(null)} onAdd={(t, b, q) => { agregar(detalle, t, b, q); setDetalle(null); }} />}
+      {detalle && <HojaDetalle data={data} item={detalle} onClose={() => setDetalle(null)} onAdd={(t, b, q, nota) => { agregar(detalle, t, b, q, nota); setDetalle(null); }} />}
 
       {/* hoja: carrito + checkout */}
       {verCarrito && <HojaCarrito data={data} mesa={mesa} hayQr={!!qr} carrito={carrito} total={total} cambiarQ={cambiarQ} onClose={() => setVerCarrito(false)} onPedir={pedir} />}
@@ -301,10 +301,11 @@ function Seguimiento({ data, pedidos, conectado, onPagar }: { data: Afiliado; pe
 }
 
 /* ---------- hoja: detalle (tamaño + borde + cantidad) ---------- */
-function HojaDetalle({ data, item, onClose, onAdd }: { data: Afiliado; item: Item; onClose: () => void; onAdd: (t: Tamano, borde: boolean, q: number) => void }) {
+function HojaDetalle({ data, item, onClose, onAdd }: { data: Afiliado; item: Item; onClose: () => void; onAdd: (t: Tamano, borde: boolean, q: number, nota: string) => void }) {
   const [tam, setTam] = useState<Tamano>(data.tamanos[0]);
   const [borde, setBorde] = useState(false);
   const [q, setQ] = useState(1);
+  const [nota, setNota] = useState('');
   const p = precioDe(tam, borde && !!tam.borde) * q;
   return (
     <Hoja onClose={onClose}>
@@ -333,6 +334,13 @@ function HojaDetalle({ data, item, onClose, onAdd }: { data: Afiliado; item: Ite
           </button>
         )}
 
+        {data.personalizar && (
+          <>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-white/45 mt-5 mb-2">¿Algo en particular?</p>
+            <input value={nota} onChange={(e) => setNota(e.target.value.slice(0, 80))} placeholder="Ej: sin aceitunas, bien cocida, mitad y mitad…" className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-3 text-sm outline-none focus:border-white/40" />
+          </>
+        )}
+
         <div className="flex items-center justify-between mt-5">
           <div className="flex items-center gap-3">
             <button onClick={() => setQ((x) => Math.max(1, x - 1))} className="w-10 h-10 rounded-full bg-white/10 text-xl">−</button>
@@ -342,7 +350,7 @@ function HojaDetalle({ data, item, onClose, onAdd }: { data: Afiliado; item: Ite
           <span className="font-mono tabular-nums text-xl font-bold" style={{ color: 'var(--oro)' }}>Bs {p}</span>
         </div>
 
-        <button onClick={() => onAdd(tam, borde && !!tam.borde, q)} className="mt-4 mb-5 w-full py-4 rounded-2xl font-bold text-lg text-black active:scale-[.98] transition-transform" style={{ background: 'var(--oro)' }}>Agregar · Bs {p}</button>
+        <button onClick={() => onAdd(tam, borde && !!tam.borde, q, nota.trim())} className="mt-4 mb-5 w-full py-4 rounded-2xl font-bold text-lg text-black active:scale-[.98] transition-transform" style={{ background: 'var(--oro)' }}>Agregar · Bs {p}</button>
       </div>
     </Hoja>
   );
@@ -381,6 +389,7 @@ function HojaCarrito({ data, mesa, hayQr, carrito, total, cambiarQ, onClose, onP
               <div className="min-w-0 flex-1">
                 <div className="font-semibold leading-tight">{l.n}</div>
                 <div className="text-xs text-white/50 mt-0.5">{l.tamT}{l.borde ? ' · borde de queso' : ''}{l.tamT ? ` · Bs ${l.p} c/u` : ''}</div>
+                {l.nota && <div className="text-xs mt-0.5 italic" style={{ color: 'var(--oro)' }}>“{l.nota}”</div>}
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => cambiarQ(l.key, -1)} className="w-8 h-8 rounded-full bg-white/10">−</button>

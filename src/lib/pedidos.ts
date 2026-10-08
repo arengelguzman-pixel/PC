@@ -5,7 +5,7 @@ export type Metodo = 'qr' | 'efectivo';
 export type EstadoPago = 'pendiente' | 'por_confirmar' | 'confirmado' | 'rechazado';
 export type EstadoCocina = 'nuevo' | 'preparando' | 'listo' | 'entregado';
 
-export type Linea = { key: string; slug: string; n: string; tamK: string; tamT: string; borde: boolean; p: number; q: number };
+export type Linea = { key: string; slug: string; n: string; tamK: string; tamT: string; borde: boolean; p: number; q: number; nota?: string };
 
 export type Pedido = {
   id: string;            // "P-001", correlativo por local

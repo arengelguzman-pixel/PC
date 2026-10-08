@@ -17,6 +17,7 @@ export type Afiliado = {
   telefonoVisible: string;
   logo: string;
   oro: string;              // color de marca
+  personalizar?: boolean;   // casilla "¿Algo en particular?" por pizza (la dueña decide)
   tamanos: Tamano[];
   categorias: Categoria[];
 };
@@ -76,6 +77,6 @@ export const elGaraje: Afiliado = {
 };
 
 // Sandbox para demos y pruebas: misma carta, sala separada (no toca el piloto real).
-export const elGarajePrueba: Afiliado = { ...elGaraje, token: 'elgaraje-prueba-x9q4', local: 'el-garaje-test', nombre: 'El Garaje · PRUEBA' };
+export const elGarajePrueba: Afiliado = { ...elGaraje, token: 'elgaraje-prueba-x9q4', local: 'el-garaje-test', nombre: 'El Garaje · PRUEBA', personalizar: true };
 
 export const AFILIADOS: Afiliado[] = [elGaraje, elGarajePrueba];

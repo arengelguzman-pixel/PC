@@ -250,6 +250,7 @@ export class Sala {
           key: String(l.key || '').slice(0, 80), slug: String(l.slug || '').slice(0, 40), n: String(l.n || '').slice(0, 60),
           tamK: String(l.tamK || '').slice(0, 20), tamT: String(l.tamT || '').slice(0, 20),
           borde: !!l.borde, p: Number(l.p) || 0, q: Math.max(1, Math.min(20, Number(l.q) || 1)),
+          ...(l.nota ? { nota: String(l.nota).slice(0, 80) } : {}),
         })),
         nota: String(body.nota || '').slice(0, 160),
         total, metodo,
