@@ -506,6 +506,7 @@ function igual(a, b) {
 // src/index.js
 var index_default = {
   async fetch(request, env, ctx) {
+    const ALIAS = { garaje: "elgaraje-a3f9k2m8x1", "garaje-prueba": "elgaraje-prueba-x9q4" };
     const u = new URL(request.url);
     // webhook del bot de Telegram: "/start <local>-<codigo>" vincula al dueño con la sala de su local
     if (u.pathname === "/api/telegram" && request.method === "POST") {
@@ -540,6 +541,9 @@ var index_default = {
       if (request.method === "POST") return onRequestPost2({ request, env, ctx });
       return new Response("Method Not Allowed", { status: 405 });
     }
+    // Links cortos por local (para el dominio propio): meza.link/garaje?mesa=3 → /m/<token>?mesa=3
+    const alias = ALIAS[u.pathname.slice(1).toLowerCase()];
+    if (alias) return Response.redirect(new URL(`/m/${alias}${u.search}`, u).toString(), 302);
     if (u.pathname === "/" || u.pathname.endsWith("/")) {
       return env.ASSETS.fetch(new Request(new URL(u.pathname + "index.html", u), request));
     }

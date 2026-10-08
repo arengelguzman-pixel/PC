@@ -17,6 +17,7 @@ import Nuevo from './panel/Nuevo';
 import DemoMenu from './panel/DemoMenu';
 import CartaAfiliado from './panel/afiliado/CartaAfiliado';
 import { AFILIADOS } from './afiliados/elGaraje';
+import { PROTOTIPOS } from './afiliados/prototipos';
 
 export default function App() {
   const photoRef = useRef<PhotoTryHandle>(null);
@@ -29,7 +30,7 @@ export default function App() {
   // resto    → landing de venta
   const mMatch = ruta.match(/\/m\/([a-z0-9-]+)$/i);
   if (mMatch) {
-    const af = AFILIADOS.find((a) => a.token === mMatch[1]);
+    const af = [...AFILIADOS, ...PROTOTIPOS].find((a) => a.token === mMatch[1]);
     if (af) return <CartaAfiliado data={af} />;
   }
   if (ruta.endsWith('/demo')) return <DemoMenu />;

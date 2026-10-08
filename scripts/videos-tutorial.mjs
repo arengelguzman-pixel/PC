@@ -31,11 +31,11 @@ const cap = (page, t) => page.evaluate((x) => { const k = document.getElementByI
 
 async function tap(page, texto, selector = 'button') {
   await prep(page);
-  const r = await page.evaluate((t, sel) => {
-    const el = [...document.querySelectorAll(sel)].find((e) => (e.innerText || '').replace(/\s+/g, ' ').toLowerCase().includes(t.toLowerCase()));
-    if (!el) return null; el.scrollIntoView({ block: 'center' }); const b = el.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 };
-  }, texto, selector);
-  if (!r) throw new Error(`no encontré "${texto}"`);
+  const busca = (t, sel) => [...document.querySelectorAll(sel)].find((e) => (e.innerText || '').replace(/\s+/g, ' ').toLowerCase().includes(t.toLowerCase()));
+  const hay = await page.evaluate((t, sel, fn) => { const el = eval(fn)(t, sel); if (!el) return false; el.scrollIntoView({ block: 'center' }); return true; }, texto, selector, busca.toString());
+  if (!hay) throw new Error(`no encontré "${texto}"`);
+  await sleep(750);   // el sitio hace scroll suave: medir después
+  const r = await page.evaluate((t, sel, fn) => { const b = eval(fn)(t, sel).getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; }, texto, selector, busca.toString());
   await page.evaluate(({ x, y }) => { const c = document.getElementById('mz-cursor'); c.style.left = x + 'px'; c.style.top = y + 'px'; }, r);
   await sleep(650);
   await page.evaluate(() => document.getElementById('mz-cursor').animate([{ transform: 'translate(-50%,-50%) scale(1)' }, { transform: 'translate(-50%,-50%) scale(.55)' }, { transform: 'translate(-50%,-50%) scale(1)' }], { duration: 320 }));
@@ -44,31 +44,43 @@ async function tap(page, texto, selector = 'button') {
 }
 const esconderCursor = (page) => page.evaluate(() => { const c = document.getElementById('mz-cursor'); if (c) { c.style.left = '-100px'; c.style.top = '-100px'; } });
 
-// una grabación: devuelve helpers que anotan en qué segundo arranca cada narración
+// una grabación por CDP: cada cuadro llega con su hora real, así la narración
+// se alinea con lo que se ve (aunque la página esté quieta un rato)
 async function grabar(page, nombre, fn) {
-  const webm = path.join(OUT, `_${nombre}.webm`);
-  const rec = await page.screencast({ path: webm, ffmpegPath: FF });
-  const t0 = Date.now();
+  const dir = path.join(OUT, `_${nombre}`); fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir);
+  const cdp = await page.createCDPSession();
+  const frames = []; let n = 0;
+  cdp.on('Page.screencastFrame', (ev) => {
+    const f = path.join(dir, `f${String(n++).padStart(5, '0')}.jpg`);
+    fs.writeFileSync(f, Buffer.from(ev.data, 'base64'));
+    frames.push({ f, t: ev.metadata.timestamp });
+    cdp.send('Page.screencastFrameAck', { sessionId: ev.sessionId }).catch(() => {});
+  });
+  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 88, maxWidth: 780, maxHeight: 1688, everyNthFrame: 1 });
+  await page.evaluate(() => { const c = document.getElementById('mz-cursor'); if (c) c.style.left = '-101px'; });   // fuerza el primer cuadro
+  await sleep(600);
   const pistas = [];
   const narrar = async (clip) => {           // muestra el subtítulo y espera lo que dura el audio
-    pistas.push({ clip, at: (Date.now() - t0) / 1000 });
+    pistas.push({ clip, at: Date.now() / 1000 });
     await cap(page, META[clip].texto);
     return sleep(META[clip].dur * 1000 + 350);
   };
-  await sleep(800);
   await fn(narrar);
   await cap(page, ''); await esconderCursor(page); await sleep(1200);
-  await rec.stop();
-  const total = (Date.now() - t0) / 1000;
-  // mezcla: cada narración entra en su segundo; video a 720 px de ancho, h264 + aac
-  const args = ['-y', '-i', webm];
+  const tEnd = Date.now() / 1000;
+  await cdp.send('Page.stopScreencast'); await sleep(300); await cdp.detach();
+  const inicio = frames[0].t, total = tEnd - inicio;
+  const ruta = (f) => f.split('\\').join('/');
+  const lista = frames.map((fr, i) => `file '${ruta(fr.f)}'\nduration ${Math.max(0.001, (i + 1 < frames.length ? frames[i + 1].t : tEnd) - fr.t).toFixed(3)}`).join('\n') + `\nfile '${ruta(frames.at(-1).f)}'\n`;
+  const lst = path.join(dir, 'lista.txt'); fs.writeFileSync(lst, lista);
+  const args = ['-y', '-f', 'concat', '-safe', '0', '-i', lst];
   pistas.forEach((p) => args.push('-i', path.join(NAR, `${p.clip}.mp3`)));
-  const fil = pistas.map((p, i) => `[${i + 1}:a]adelay=${Math.round(p.at * 1000)}|${Math.round(p.at * 1000)}[a${i}]`).join(';')
-    + `;${pistas.map((_, i) => `[a${i}]`).join('')}amix=inputs=${pistas.length}:normalize=0[a]`;
-  args.push('-filter_complex', fil, '-map', '0:v', '-map', '[a]', '-vf', 'scale=720:-2,fps=30', '-c:v', 'libx264', '-preset', 'medium', '-crf', '22', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-t', String(total.toFixed(2)), path.join(OUT, `${nombre}.mp4`));
+  const ms = (p) => Math.max(0, Math.round((p.at - inicio) * 1000));
+  const fil = pistas.map((p, i) => `[${i + 1}:a]adelay=${ms(p)}|${ms(p)}[a${i}]`).join(';') + `;${pistas.map((_, i) => `[a${i}]`).join('')}amix=inputs=${pistas.length}:normalize=0[a]`;
+  args.push('-filter_complex', fil, '-map', '0:v', '-map', '[a]', '-vf', 'scale=720:-2,fps=30,format=yuv420p', '-c:v', 'libx264', '-preset', 'medium', '-crf', '21', '-c:a', 'aac', '-b:a', '128k', '-t', total.toFixed(2), path.join(OUT, `${nombre}.mp4`));
   execFileSync(FF, args, { stdio: 'ignore' });
-  fs.unlinkSync(webm);
-  console.log('✓', nombre, total.toFixed(1) + 's');
+  if (!process.env.KEEP) fs.rmSync(dir, { recursive: true, force: true });
+  console.log('✓', nombre, total.toFixed(1) + 's', frames.length, 'cuadros');
 }
 
 const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
@@ -111,7 +123,7 @@ if (!SOLO || SOLO === 'v2') {
     await api('/pedidos', { mesa: '5', items: [{ key: 'pep-f', slug: 'peperoni', n: 'Peperoni', tamK: 'familiar', tamT: 'Familiar', borde: true, p: 75, q: 1, nota: 'bien cocida' }], nota: '', total: 75, metodo: 'efectivo' });
     await fin;
     fin = narrar('v2-3'); await sleep(800); await tap(page, 'Recibido'); await fin;
-    fin = narrar('v2-4'); await tap(page, 'Al horno'); await sleep(1300); await tap(page, 'Lista'); await sleep(1300); await tap(page, 'Entregar'); await fin;
+    fin = narrar('v2-4'); await tap(page, 'Al horno ▸'); await sleep(1300); await tap(page, 'Lista ▸'); await sleep(1300); await tap(page, 'Entregar ▸'); await fin;
     fin = narrar('v2-5');
     await page.evaluate(() => [...document.querySelectorAll('h2')].find((h) => /disponibilidad/i.test(h.innerText))?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
     await sleep(1800); await tap(page, 'Hay'); await sleep(2200); await tap(page, 'Agotada'); await fin;
