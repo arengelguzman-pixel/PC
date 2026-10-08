@@ -66,6 +66,24 @@ export const elGaraje: Afiliado = {
         { slug: 'carni-dulce', n: 'Carni-dulce', i: 'Muzzarela, carne y piña', foto: `${F}/carni-dulce.jpg` },
         { slug: 'mexicana', n: 'Mexicana', i: 'Muzzarela, carne, pico de gallo y limón', foto: `${F}/mexicana.jpg` },
         { slug: 'vegetariana', n: 'Vegetariana', i: 'Muzzarela, choclo y champiñón', foto: `${F}/vegetariana.jpg` },
+        // tercera hoja del menú (8-oct-2026)
+        { slug: 'vistima', n: 'Vístima', i: 'Muzzarela, salchicha y papas fritas', foto: `${F}/vistima.jpg` },
+        { slug: 'diabla', n: 'Diabla', i: 'Muzzarela, jamón y locoto/jalapeño', foto: `${F}/diabla.jpg` },
+        { slug: 'tradicional', n: 'Tradicional', i: 'Muzzarela y jamón', foto: `${F}/tradicional.jpg` },
+        { slug: 'margarita', n: 'Margarita', i: 'Muzzarela, jamón y champiñón', foto: `${F}/margarita.jpg` },
+        { slug: '4-quesos', n: '4 Quesos', i: 'Muzzarela, cheddar, catupiry y tradicional', foto: `${F}/4-quesos.jpg` },
+        { slug: 'verdulera', n: 'Verdulera', i: 'Muzzarela, tomate, choclo, cebolla y pimentón', foto: `${F}/verdulera.jpg` },
+        { slug: '4-estaciones', n: '4 Estaciones', i: 'Muzzarela, jamón, peperoni, choclo y champiñón', foto: `${F}/4-estaciones.jpg` },
+        { slug: 'carnivora', n: 'Carnívora', i: 'Muzzarela, carne, tocino y choclo', foto: `${F}/carnivora.jpg` },
+        { slug: 'america', n: 'América', i: 'Muzzarela, jamón y choclo', foto: `${F}/america.jpg` },
+      ],
+    },
+    {
+      k: 'hamburguesas', t: 'Hamburguesas', desc: 'Con papas fritas', porTamano: false,
+      items: [
+        { slug: 'hamburguesa-simple', n: 'Hamburguesa simple', i: 'Carne, queso, lechuga, tomate y papas', p: 25, foto: `${F}/hamburguesa.jpg` },
+        { slug: 'hamburguesa-especial', n: 'Hamburguesa especial', i: 'Con huevo y tocino', p: 30, foto: `${F}/hamburguesa.jpg` },
+        { slug: 'hamburguesa-doble', n: 'Hamburguesa doble', i: 'Doble carne y doble queso', p: 36, foto: `${F}/hamburguesa.jpg` },
       ],
     },
     {

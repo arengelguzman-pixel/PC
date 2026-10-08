@@ -200,7 +200,7 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
             )}
 
             {/* Resto: lista con miniatura */}
-            {cat.k === 'resto' && cat.items.map((it) => {
+            {cat.k !== 'especiales' && !cat.porTamano && cat.items.map((it) => {
               const no = agotado(it.slug);
               return (
                 <article key={it.slug} className="flex items-center gap-3 rounded-2xl bg-[#161616] border border-white/10 p-3 mb-3" style={{ opacity: no ? 0.5 : 1 }}>
