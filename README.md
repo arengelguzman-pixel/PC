@@ -60,6 +60,33 @@ del dueño → Iniciar. Desde ahí cada cierre le llega con el PDF.
 **Webhook (opcional):** `npx wrangler secret put WEBHOOK_CIERRE` con la URL de n8n/Make; recibe
 `{tipo:'cierre', local, cierre, resumen, pdfBase64, pdfNombre}` para reenviar por WhatsApp o correo.
 
+## Administrar la carta de El Garaje (orden, precios, fotos, interfaz)
+
+Todo el menú de El Garaje vive en **un solo archivo**: `src/afiliados/elGaraje.ts`. No hay panel:
+se edita el archivo y se publica. Cambios típicos:
+
+- **Orden de las pizzas:** el orden del arreglo `items` es el orden en pantalla. Cortar y pegar la
+  línea de una pizza donde quieras.
+- **Orden de las secciones:** el orden de `categorias` (Especiales → Pizzas → Hamburguesas → Del resto).
+  `especiales` se dibuja como tarjeta grande; una categoría con `porTamano: true` se dibuja en
+  cuadrícula con tamaños; cualquier otra, como lista con miniatura.
+- **Precios por tamaño:** `tamanos` (`p` precio, `borde` precio con borde de queso).
+- **Plato sin precio:** quitar `p` → muestra "Consultar" y no se puede pedir (así está la Milanesa).
+- **Nombre / descripción:** `n` e `i`. El `slug` no se cambia (es la clave de "Agotada" y de los pedidos).
+- **Foto:** `foto` apunta a `public/afiliados/el-garaje/pizzas/<slug>.jpg` (cuadrada, 1024 px).
+- **Interfaz:** `oro` (color de marca de los botones), `personalizar` (casilla "¿Algo en particular?"),
+  `icono` (ícono al agregar a inicio), `logo`, `bajada`, `whatsapp`/`telefonoVisible`.
+- **Agotar un plato por un día:** eso no se edita aquí; se hace desde Cocina → Disponibilidad.
+
+Publicar (1 minuto):
+
+```bash
+npm run build && npx wrangler deploy
+```
+
+Los cambios se ven al instante en `pidemeza.com/garaje`. El sandbox `elGarajePrueba` hereda la
+misma carta (`...elGaraje`), así que cualquier cambio se puede probar ahí primero.
+
 ## Voz de avisos (ElevenLabs)
 
 Cocina anuncia cada comanda nueva con voz ("¡Nueva comanda! Mesa cinco") y la repite cada 20 s
