@@ -120,10 +120,10 @@ export const elGaraje: Afiliado = {
     {
       k: 'bebidas', t: 'Bebidas', desc: 'Gaseosas, jugos y cervezas', porTamano: false,
       items: [
-        { slug: 'gaseosa-2l', n: 'Gaseosa 2 litros', i: 'Coca Cola, Fanta o Sprite', p: 20, foto: `${F}/gaseosa.jpg`, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
-        { slug: 'gaseosa-popular', n: 'Gaseosa popular', i: 'Coca Cola, Fanta o Sprite', p: 9, foto: `${F}/gaseosa.jpg`, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
-        { slug: 'gaseosa-peque', n: 'Gaseosa peque', i: 'Coca Cola, Fanta o Sprite', p: 6, foto: `${F}/gaseosa.jpg`, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
-        { slug: 'gaseosa-mini', n: 'Gaseosa mini', i: 'Coca Cola, Fanta o Sprite', p: 4, foto: `${F}/gaseosa.jpg`, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
+        { slug: 'gaseosa-2l', n: 'Gaseosa 2 litros', i: 'Coca Cola, Fanta o Sprite', p: 20, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
+        { slug: 'gaseosa-popular', n: 'Gaseosa popular', i: 'Coca Cola, Fanta o Sprite', p: 9, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
+        { slug: 'gaseosa-peque', n: 'Gaseosa peque', i: 'Coca Cola, Fanta o Sprite', p: 6, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
+        { slug: 'gaseosa-mini', n: 'Gaseosa mini', i: 'Coca Cola, Fanta o Sprite', p: 4, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
         { slug: 'jarra-grande-jugo', n: 'Jarra grande de jugo', i: 'Limonada o maracuyá · 2 litros', p: 20, foto: `${F}/jarra-limonada.jpg`, opciones: ['Limonada', 'Maracuyá'] },
         { slug: 'jarra-pequena-jugo', n: 'Jarra pequeña de jugo', i: 'Limonada o maracuyá · 1 litro', p: 15, foto: `${F}/jarra-limonada.jpg`, opciones: ['Limonada', 'Maracuyá'] },
         { slug: 'vaso-jugo', n: 'Vaso de jugo', i: 'Limonada o maracuyá', p: 6, foto: `${F}/vaso-limonada.jpg`, opciones: ['Limonada', 'Maracuyá'] },
