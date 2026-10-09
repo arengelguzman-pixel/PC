@@ -163,7 +163,7 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
             {cat.k === 'especiales' && cat.items.map((it) => {
               const no = agotado(it.slug);
               return (
-                <article key={it.slug} className="rounded-2xl overflow-hidden bg-[#161616] border border-white/10 mb-3" style={{ opacity: no ? 0.5 : 1 }}>
+                <article key={it.slug} onClick={() => !no && it.p && setDetalle(it)} className={`rounded-2xl overflow-hidden bg-[#161616] border border-white/10 mb-3 ${!no && it.p ? 'cursor-pointer active:scale-[.99] transition-transform' : ''}`} style={{ opacity: no ? 0.5 : 1 }}>
                   {it.foto && (
                     <div className="relative aspect-[4/3] bg-[#111]">
                       <Foto src={it.foto} alt={it.n} eager />
@@ -173,7 +173,7 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
                   )}
                   <div className="p-4 flex items-center justify-between gap-3">
                     <div className="min-w-0"><h3 className="text-xl font-bold leading-tight">{it.n}</h3><p className="text-[13px] text-white/60 mt-1">{it.i}</p></div>
-                    {!no && it.p ? <button onClick={() => it.opciones ? setEligiendo(it) : agregar(it, null, false, 1)} className="shrink-0 font-bold text-sm px-4 py-2.5 rounded-full text-black active:scale-[.97] transition-transform font-mono tabular-nums" style={{ background: 'var(--oro)' }}>Bs {it.p} +</button> : null}
+                    {!no && it.p ? <button onClick={(e) => { e.stopPropagation(); if (it.opciones) setEligiendo(it); else agregar(it, null, false, 1); }} className="shrink-0 font-bold text-sm px-4 py-2.5 rounded-full text-black active:scale-[.97] transition-transform font-mono tabular-nums" style={{ background: 'var(--oro)' }}>Bs {it.p} +</button> : null}
                   </div>
                 </article>
               );
@@ -208,14 +208,14 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
             {cat.k !== 'especiales' && !cat.porTamano && cat.items.map((it) => {
               const no = agotado(it.slug);
               return (
-                <article key={it.slug} className="flex items-center gap-3 rounded-2xl bg-[#161616] border border-white/10 p-3 mb-3" style={{ opacity: no ? 0.5 : 1 }}>
+                <article key={it.slug} onClick={() => !no && it.p && setDetalle(it)} className={`flex items-center gap-3 rounded-2xl bg-[#161616] border border-white/10 p-3 mb-3 ${!no && it.p ? 'cursor-pointer active:scale-[.99] transition-transform' : ''}`} style={{ opacity: no ? 0.5 : 1 }}>
                   <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-[#111] shrink-0">{it.foto && <Foto src={it.foto} alt={it.n} />}{no && <Agotada />}</div>
                   <div className="min-w-0 flex-1">
                     <h3 className="font-bold leading-tight">{it.n}</h3>
                     <p className="text-[12px] text-white/55 mt-1">{it.i}</p>
                     <div className="flex items-center justify-between mt-2">
                       <span className="font-mono tabular-nums text-sm" style={{ color: 'var(--oro)' }}>{it.p ? `Bs ${it.p}` : 'Consultar'}</span>
-                      {!no && it.p ? <button onClick={() => it.opciones ? setEligiendo(it) : agregar(it, null, false, 1)} className="w-8 h-8 rounded-full text-black text-lg font-bold" style={{ background: 'var(--oro)' }}>+</button> : null}
+                      {!no && it.p ? <button onClick={(e) => { e.stopPropagation(); if (it.opciones) setEligiendo(it); else agregar(it, null, false, 1); }} className="w-8 h-8 rounded-full text-black text-lg font-bold" style={{ background: 'var(--oro)' }}>+</button> : null}
                     </div>
                   </div>
                 </article>
@@ -238,7 +238,7 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
       )}
 
       {/* hoja: detalle de pizza (tamaño + borde + cantidad) */}
-      {detalle && <HojaDetalle data={data} item={detalle} onClose={() => setDetalle(null)} otras={(data.categorias.find((c) => c.items.includes(detalle))?.items ?? []).filter((i) => i.slug !== detalle.slug && !agotado(i.slug))} onAdd={(t, b, q, nota, extras, extraP, mitad) => { agregar(detalle, t, b, q, nota, { extras, extraP, mitad }); setDetalle(null); }} />}
+      {detalle && <HojaDetalle data={data} item={detalle} onClose={() => setDetalle(null)} conTamanos={!!data.categorias.find((c) => c.items.includes(detalle))?.porTamano} otras={(data.categorias.find((c) => c.items.includes(detalle))?.items ?? []).filter((i) => i.slug !== detalle.slug && !agotado(i.slug))} onAdd={(t, b, q, nota, extras, extraP, mitad, opcion) => { agregar(detalle, t, b, q, nota, { extras, extraP, mitad, opcion }); setDetalle(null); }} />}
 
       {/* hoja: elige una opción (Coca/Fanta/Sprite, res/pollo/mixta…) */}
       {eligiendo && (
@@ -323,9 +323,9 @@ function Seguimiento({ data, pedidos, conectado, onPagar }: { data: Afiliado; pe
 }
 
 /* ---------- hoja: detalle (tamaño + borde + cantidad) ---------- */
-function HojaDetalle({ data, item, otras, onClose, onAdd }: {
-  data: Afiliado; item: Item; otras: Item[]; onClose: () => void;
-  onAdd: (t: Tamano, borde: boolean, q: number, nota: string, extras: string[], extraP: number, mitad: Item | null) => void;
+function HojaDetalle({ data, item, conTamanos, otras, onClose, onAdd }: {
+  data: Afiliado; item: Item; conTamanos: boolean; otras: Item[]; onClose: () => void;
+  onAdd: (t: Tamano | null, borde: boolean, q: number, nota: string, extras: string[], extraP: number, mitad: Item | null, opcion?: string) => void;
 }) {
   const [tam, setTam] = useState<Tamano>(data.tamanos[0]);
   const [borde, setBorde] = useState(false);
@@ -334,10 +334,11 @@ function HojaDetalle({ data, item, otras, onClose, onAdd }: {
   const [extras, setExtras] = useState<string[]>([]);
   const [mitad, setMitad] = useState<Item | null>(null);          // segundo sabor (mitad y mitad)
   const [eligiendoMitad, setEligiendoMitad] = useState(false);
-  const puedeMitad = !!data.mitad?.includes(tam.k) && otras.length > 0;
+  const [opcion, setOpcion] = useState(item.opciones?.[0] ?? '');     // ítems simples con "elige una"
+  const puedeMitad = conTamanos && !!data.mitad?.includes(tam.k) && otras.length > 0;
   const precioExtra = (e: string) => data.extras?.find((g) => g.items.includes(e))?.precio[tam.k] ?? 0;
   const extraP = extras.reduce((a, e) => a + precioExtra(e), 0);
-  const p = (precioDe(tam, borde && !!tam.borde) + extraP) * q;
+  const p = conTamanos ? (precioDe(tam, borde && !!tam.borde) + extraP) * q : (item.p ?? 0) * q;
   const elegirTam = (t: Tamano) => { setTam(t); if (!t.borde) setBorde(false); if (!data.mitad?.includes(t.k)) { setMitad(null); setEligiendoMitad(false); } };
   const alternarExtra = (e: string) => setExtras((x) => (x.includes(e) ? x.filter((y) => y !== e) : [...x, e]));
   const LIMA = '#C6FF3D';
@@ -348,8 +349,25 @@ function HojaDetalle({ data, item, otras, onClose, onAdd }: {
         <h3 className="text-2xl font-extrabold leading-tight">{mitad ? `Mitad ${item.n} · Mitad ${mitad.n}` : item.n}</h3>
         <p className="text-sm text-white/60 mt-1">{mitad ? `${item.i} / ${mitad.i}` : item.i}</p>
 
-        <p className="text-[11px] uppercase tracking-[0.18em] text-white/45 mt-5 mb-2">Tamaño</p>
-        <div className="flex flex-col gap-2">
+        {!conTamanos && item.opciones && (
+          <>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-white/45 mt-5 mb-2">Elige una opción</p>
+            <div className="flex flex-col gap-2">
+              {item.opciones.map((o) => {
+                const sel = o === opcion;
+                return (
+                  <button key={o} onClick={() => setOpcion(o)} className={`flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-colors ${sel ? 'border-transparent text-black' : 'border-white/15 text-white'}`} style={sel ? { background: 'var(--oro)' } : undefined}>
+                    <span className="flex items-center gap-3">{item.fotos?.[o] && <img src={item.fotos[o]} alt={o} className="w-10 h-10 rounded-lg object-cover bg-white" />}<span className="font-semibold">{o}</span></span>
+                    <span className="font-mono tabular-nums font-bold">Bs {item.p}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {conTamanos && <p className="text-[11px] uppercase tracking-[0.18em] text-white/45 mt-5 mb-2">Tamaño</p>}
+        {conTamanos && <div className="flex flex-col gap-2">
           {data.tamanos.map((t) => {
             const sel = t.k === tam.k;
             return (
@@ -359,9 +377,9 @@ function HojaDetalle({ data, item, otras, onClose, onAdd }: {
               </button>
             );
           })}
-        </div>
+        </div>}
 
-        {tam.borde && (
+        {conTamanos && tam.borde && (
           <button onClick={() => setBorde((b) => !b)} className={`mt-3 w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-colors ${borde ? 'border-transparent text-black' : 'border-white/15 text-white'}`} style={borde ? { background: 'var(--oro)' } : undefined}>
             <span className="font-semibold">Borde de queso</span>
             <span className="font-mono tabular-nums">+ Bs {tam.borde - tam.p}</span>
@@ -383,7 +401,7 @@ function HojaDetalle({ data, item, otras, onClose, onAdd }: {
           </div>
         )}
 
-        {data.extras?.length ? (
+        {conTamanos && data.extras?.length ? (
           <>
             <p className="text-[11px] uppercase tracking-[0.18em] text-white/45 mt-5 mb-2">Extras</p>
             {data.extras.map((g) => (
@@ -413,7 +431,7 @@ function HojaDetalle({ data, item, otras, onClose, onAdd }: {
           <span className="font-mono tabular-nums text-xl font-bold" style={{ color: 'var(--oro)' }}>Bs {p}</span>
         </div>
 
-        <button onClick={() => onAdd(tam, borde && !!tam.borde, q, nota.trim(), extras, extraP, mitad)} className="mt-4 mb-5 w-full py-4 rounded-2xl font-bold text-lg text-black active:scale-[.98] transition-transform" style={{ background: 'var(--oro)' }}>Agregar · Bs {p}</button>
+        <button onClick={() => (conTamanos ? onAdd(tam, borde && !!tam.borde, q, nota.trim(), extras, extraP, mitad) : onAdd(null, false, q, nota.trim(), [], 0, null, opcion || undefined))} className="mt-4 mb-5 w-full py-4 rounded-2xl font-bold text-lg text-black active:scale-[.98] transition-transform" style={{ background: 'var(--oro)' }}>Agregar · Bs {p}</button>
       </div>
     </Hoja>
   );
