@@ -5,7 +5,7 @@
 // Cómo editar la carta (orden, precios, fotos): ver README → "Administrar la carta".
 
 export type Tamano = { k: string; t: string; p: number; borde?: number };
-export type Item = { slug: string; n: string; i: string; foto?: string; p?: number; opciones?: string[] };   // opciones: "elige una" al agregar (Coca/Fanta/Sprite…)
+export type Item = { slug: string; n: string; i: string; foto?: string; p?: number; opciones?: string[]; fotos?: Record<string, string> };   // fotos: una por opción   // opciones: "elige una" al agregar (Coca/Fanta/Sprite…)
 export type Categoria = { k: string; t: string; desc?: string; porTamano: boolean; items: Item[] };
 export type GrupoExtra = { t: string; items: string[]; precio: Record<string, number> };                   // precio por tamaño (k de Tamano)
 
@@ -120,10 +120,10 @@ export const elGaraje: Afiliado = {
     {
       k: 'bebidas', t: 'Bebidas', desc: 'Gaseosas, jugos y cervezas', porTamano: false,
       items: [
-        { slug: 'gaseosa-2l', n: 'Gaseosa 2 litros', i: 'Coca Cola, Fanta o Sprite', p: 20, foto: `${F}/coca-2l.jpg`, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
-        { slug: 'gaseosa-popular', n: 'Gaseosa popular', i: 'Coca Cola, Fanta o Sprite', p: 9, foto: `${F}/coca-popular.jpg`, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
-        { slug: 'gaseosa-peque', n: 'Gaseosa peque', i: 'Coca Cola, Fanta o Sprite', p: 6, foto: `${F}/coca-peque.jpg`, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
-        { slug: 'gaseosa-mini', n: 'Gaseosa mini', i: 'Coca Cola, Fanta o Sprite', p: 4, foto: `${F}/coca-mini.jpg`, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
+        { slug: 'gaseosa-2l', n: 'Gaseosa 2 litros', i: 'Coca Cola, Fanta o Sprite', p: 20, foto: `${F}/coca-2l.jpg`, fotos: { 'Coca Cola': `${F}/coca-2l.jpg`, Fanta: `${F}/fanta-2l.jpg`, Sprite: `${F}/sprite-2l.jpg` }, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
+        { slug: 'gaseosa-popular', n: 'Gaseosa popular', i: 'Coca Cola, Fanta o Sprite', p: 9, foto: `${F}/coca-popular.jpg`, fotos: { 'Coca Cola': `${F}/coca-popular.jpg`, Fanta: `${F}/fanta-popular.jpg`, Sprite: `${F}/sprite-popular.jpg` }, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
+        { slug: 'gaseosa-peque', n: 'Gaseosa peque', i: 'Coca Cola, Fanta o Sprite', p: 6, foto: `${F}/coca-peque.jpg`, fotos: { 'Coca Cola': `${F}/coca-peque.jpg`, Fanta: `${F}/fanta-peque.jpg`, Sprite: `${F}/sprite-peque.jpg` }, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
+        { slug: 'gaseosa-mini', n: 'Gaseosa mini', i: 'Coca Cola, Fanta o Sprite', p: 4, foto: `${F}/coca-mini.jpg`, fotos: { 'Coca Cola': `${F}/coca-mini.jpg`, Fanta: `${F}/fanta-mini.jpg`, Sprite: `${F}/sprite-mini.jpg` }, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
         { slug: 'jarra-grande-jugo', n: 'Jarra grande de jugo', i: 'Limonada o maracuyá · 2 litros', p: 20, foto: `${F}/jarra-limonada.jpg`, opciones: ['Limonada', 'Maracuyá'] },
         { slug: 'jarra-pequena-jugo', n: 'Jarra pequeña de jugo', i: 'Limonada o maracuyá · 1 litro', p: 15, foto: `${F}/jarra-limonada.jpg`, opciones: ['Limonada', 'Maracuyá'] },
         { slug: 'vaso-jugo', n: 'Vaso de jugo', i: 'Limonada o maracuyá', p: 6, foto: `${F}/vaso-limonada.jpg`, opciones: ['Limonada', 'Maracuyá'] },

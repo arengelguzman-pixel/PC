@@ -249,7 +249,7 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
             <div className="flex flex-col gap-2 mt-4">
               {eligiendo.opciones!.map((o) => (
                 <button key={o} onClick={() => { agregar(eligiendo, null, false, 1, '', { opcion: o }); setEligiendo(null); }} className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-white/15 text-left font-semibold active:scale-[.98] transition-transform">
-                  <span>{o}</span><span className="font-mono tabular-nums" style={{ color: 'var(--oro)' }}>Bs {eligiendo.p}</span>
+                  <span className="flex items-center gap-3">{eligiendo.fotos?.[o] && <img src={eligiendo.fotos[o]} alt={o} className="w-12 h-12 rounded-lg object-cover bg-white" />}<span>{o}</span></span><span className="font-mono tabular-nums" style={{ color: 'var(--oro)' }}>Bs {eligiendo.p}</span>
                 </button>
               ))}
             </div>
