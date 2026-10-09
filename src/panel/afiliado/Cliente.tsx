@@ -336,6 +336,7 @@ function HojaDetalle({ data, item, conTamanos, otras, onClose, onAdd }: {
   const [eligiendoMitad, setEligiendoMitad] = useState(false);
   const [opcion, setOpcion] = useState(item.opciones?.[0] ?? '');     // ítems simples con "elige una"
   const puedeMitad = conTamanos && !!data.mitad?.includes(tam.k) && otras.length > 0;
+  const esBebida = data.categorias.find((c) => c.items.includes(item))?.k === 'bebidas';
   const precioExtra = (e: string) => data.extras?.find((g) => g.items.includes(e))?.precio[tam.k] ?? 0;
   const extraP = extras.reduce((a, e) => a + precioExtra(e), 0);
   const p = conTamanos ? (precioDe(tam, borde && !!tam.borde) + extraP) * q : (item.p ?? 0) * q;
@@ -344,7 +345,11 @@ function HojaDetalle({ data, item, conTamanos, otras, onClose, onAdd }: {
   const LIMA = '#C6FF3D';
   return (
     <Hoja onClose={onClose}>
-      {item.foto && <div className="relative aspect-[16/10] mx-4 mt-2 rounded-2xl overflow-hidden bg-[#111]"><Foto src={item.foto} alt={item.n} /></div>}
+      {(item.fotos?.[opcion] ?? item.foto) && (
+        esBebida
+          ? <div className="mx-4 mt-2 rounded-2xl overflow-hidden bg-white aspect-[16/10]"><img src={item.fotos?.[opcion] ?? item.foto} alt={item.n} className="w-full h-full object-contain" /></div>   // botellas y jarras: enteras, sin recortar
+          : <div className="relative aspect-[16/10] mx-4 mt-2 rounded-2xl overflow-hidden bg-[#111]"><Foto src={item.foto!} alt={item.n} /></div>
+      )}
       <div className="px-5 pt-4">
         <h3 className="text-2xl font-extrabold leading-tight">{mitad ? `Mitad ${item.n} · Mitad ${mitad.n}` : item.n}</h3>
         <p className="text-sm text-white/60 mt-1">{mitad ? `${item.i} / ${mitad.i}` : item.i}</p>
