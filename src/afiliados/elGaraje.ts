@@ -113,7 +113,7 @@ export const elGaraje: Afiliado = {
       items: [
         { slug: 'salchipapa-clasica', n: 'Salchipapa clásica', i: 'Salchicha y papas', p: 25, foto: `${F}/salchipapa-clasica.jpg` },
         { slug: 'salchipapa-especial', n: 'Salchipapa especial', i: 'Salchicha, queso muzzarela, choclo y papas', p: 30, foto: `${F}/salchipapa-especial.jpg` },
-        { slug: 'pechuga-plancha', n: 'Pechuga a la plancha', i: 'Pechuga de pollo a la plancha con papas fritas', p: 25, foto: `${F}/pechuga.jpg` },
+        { slug: 'pechuga-plancha', n: 'Pechuga a la plancha', i: 'Pechuga de pollo a la plancha con ensalada de lechuga, tomate y choclo', p: 25, foto: `${F}/pechuga.jpg` },
         { slug: 'papas-fritas', n: 'Plato de papas fritas', i: 'Para compartir', p: 12, foto: `${F}/papas-fritas.jpg` },
       ],
     },
@@ -140,4 +140,7 @@ export const elGaraje: Afiliado = {
 // Sandbox para demos y pruebas: misma carta, sala separada (no toca el piloto real).
 export const elGarajePrueba: Afiliado = { ...elGaraje, token: 'elgaraje-prueba-x9q4', local: 'el-garaje-test', nombre: 'El Garaje · PRUEBA', personalizar: true };
 
-export const AFILIADOS: Afiliado[] = [elGaraje, elGarajePrueba];
+// Clon para demostraciones a otros locales: misma carta, sala aparte (`el-garaje-demo`), link pidemeza.com/garaje-demo
+export const elGarajeDemo: Afiliado = { ...elGaraje, token: 'elgaraje-demo-w7k2p5', local: 'el-garaje-demo', nombre: 'El Garaje · DEMO' };
+
+export const AFILIADOS: Afiliado[] = [elGaraje, elGarajePrueba, elGarajeDemo];

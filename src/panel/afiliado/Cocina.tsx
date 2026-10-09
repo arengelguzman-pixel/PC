@@ -12,17 +12,18 @@ import { beep, voz, Conexion, Foto, AvisoSonido } from './comunes';
 
 type Filtro = 'todas' | EstadoCocina;
 
-const ET: Record<EstadoCocina, string> = { nuevo: 'NUEVA', preparando: 'EN HORNO', listo: 'LISTA', entregado: 'ENTREGADA' };
-const SIG: Record<EstadoCocina, EstadoCocina> = { nuevo: 'preparando', preparando: 'listo', listo: 'entregado', entregado: 'entregado' };
-const ACCION: Record<EstadoCocina, string> = { nuevo: 'Al horno ▸', preparando: 'Lista ▸', listo: 'Entregar ▸', entregado: '' };
+// Flujo simple: llega (nuevo) → Recibido ✓ (preparando) → Entregada ✓ (entregado). 'listo' queda por compatibilidad.
+const ET: Record<EstadoCocina, string> = { nuevo: 'NUEVA', preparando: 'EN PREPARACIÓN', listo: 'EN PREPARACIÓN', entregado: 'ENTREGADA' };
+const SIG: Record<EstadoCocina, EstadoCocina> = { nuevo: 'entregado', preparando: 'entregado', listo: 'entregado', entregado: 'entregado' };
+const ACCION: Record<EstadoCocina, string> = { nuevo: 'Entregada ✓', preparando: 'Entregada ✓', listo: 'Entregada ✓', entregado: '' };
 const VACIO: Record<Filtro, string> = {
   todas: 'sin comandas — llegan aquí cuando un cliente pide',
   nuevo: 'no hay comandas nuevas',
-  preparando: 'nada en el horno',
-  listo: 'nada listo para entregar',
+  preparando: 'nada en preparación',
+  listo: 'nada en preparación',
   entregado: 'todavía no se entregó nada',
 };
-const colorEstado = (e: EstadoCocina) => e === 'nuevo' ? 'bg-maiz text-negro' : e === 'preparando' ? 'bg-azul text-white' : e === 'listo' ? 'bg-lima text-negro' : 'bg-crema/25 text-crema';
+const colorEstado = (e: EstadoCocina) => e === 'nuevo' ? 'bg-maiz text-negro' : e === 'entregado' ? 'bg-crema/25 text-crema' : 'bg-azul text-white';
 
 // pago: texto + clases del badge
 function badgePago(p: Pedido): [string, string] {
@@ -69,6 +70,14 @@ export default function Cocina({ data, pedidos, agotados, clave, conectado, sali
   const ultima = pendientes[0];
 
   const reconocer = (id: string) => setAcks((a) => { if (a.includes(id)) return a; const n = [...a, id]; guardarAcks(data.local, n); return n; });
+  // "Recibido": apaga la alarma y avisa al cliente que ya está en preparación
+  const recibir = async (p: Pedido) => {
+    reconocer(p.id);
+    if (p.cocina !== 'nuevo') return;
+    const r = await avanzarCocina(data.local, p.id, clave, 'preparando');
+    if (!r.ok) return fallo(r, 'No se pudo marcar la comanda como recibida.');
+    setLocales((l) => ({ ...l, [p.id]: r.pedido }));
+  };
 
   // alarma: bip alternado cada 4 s + vibración mientras haya comandas sin reconocer;
   // cada 20 s la voz repite la mesa de la comanda más vieja sin reconocer
@@ -140,7 +149,7 @@ export default function Cocina({ data, pedidos, agotados, clave, conectado, sali
   };
 
   const now = Date.now();
-  const visibles = lista.filter((p) => filtro === 'todas' ? p.cocina !== 'entregado' : p.cocina === filtro);
+  const visibles = lista.filter((p) => filtro === 'todas' ? p.cocina !== 'entregado' : filtro === 'preparando' ? (p.cocina === 'preparando' || p.cocina === 'listo') : p.cocina === filtro);
   const entregadas = lista.filter((p) => p.cocina === 'entregado').length;
   const soportaAvisos = 'Notification' in window;
 
@@ -186,7 +195,7 @@ export default function Cocina({ data, pedidos, agotados, clave, conectado, sali
 
         {/* filtros */}
         <div className="flex gap-1.5 flex-wrap mt-5">
-          {([['todas', 'En curso'], ['nuevo', 'Nuevas'], ['preparando', 'En horno'], ['listo', 'Listas'], ['entregado', `Entregadas${entregadas ? ` ·${entregadas}` : ''}`]] as const).map(([k, t]) => (
+          {([['todas', 'En curso'], ['nuevo', 'Nuevas'], ['preparando', 'En preparación'], ['entregado', `Entregadas${entregadas ? ` ·${entregadas}` : ''}`]] as const).map(([k, t]) => (
             <button key={k} onClick={() => setFiltro(k)} className={`font-press-start text-[8px] px-3 py-2 border-2 tracking-wider ${filtro === k ? 'bg-lima text-negro border-lima' : 'text-crema/70 border-crema/25'}`}>{t}</button>
           ))}
         </div>
@@ -218,12 +227,12 @@ export default function Cocina({ data, pedidos, agotados, clave, conectado, sali
                 </ul>
                 {p.nota && <p className="mt-2 text-xs text-maiz italic">“{p.nota}”</p>}
                 {pend && (
-                  <button onClick={() => reconocer(p.id)} className="mt-3 w-full font-press-start text-[10px] text-negro bg-maiz border-[3px] border-negro py-4 uppercase tracking-widest active:scale-[.98] transition-transform">Recibido ✓</button>
+                  <button onClick={() => recibir(p)} className="mt-3 w-full font-press-start text-[10px] text-negro bg-maiz border-[3px] border-negro py-4 uppercase tracking-widest active:scale-[.98] transition-transform">Recibido ✓</button>
                 )}
                 <div className="flex justify-between items-center mt-3 pt-2 border-t border-crema/10">
                   <span className="font-mono text-maiz text-sm tabular-nums">Bs {p.total}</span>
                   {activa && (
-                    <button onClick={() => avanzar(p)} disabled={!!ocupado[p.id]} className={`font-press-start text-[8px] py-2.5 px-3 border-2 uppercase tracking-wider disabled:opacity-40 ${p.cocina === 'listo' ? 'text-crema border-crema/30' : 'text-negro bg-lima border-negro'}`}>
+                    <button onClick={() => avanzar(p)} disabled={!!ocupado[p.id]} className={`font-press-start text-[8px] py-2.5 px-3 border-2 uppercase tracking-wider disabled:opacity-40 text-negro bg-lima border-negro`}>
                       {ocupado[p.id] ? '…' : ACCION[p.cocina]}
                     </button>
                   )}

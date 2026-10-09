@@ -137,6 +137,6 @@ export function comprimirImagen(file: File, max = 1280, calidad = 0.82): Promise
 
 // ---- utilidades de presentación ----
 export const ETIQUETA_PAGO: Record<EstadoPago, string> = { pendiente: 'Pago pendiente', por_confirmar: 'Comprobante enviado', confirmado: 'Pago confirmado', rechazado: 'Pago rechazado' };
-export const ETIQUETA_COCINA: Record<EstadoCocina, string> = { nuevo: 'Recibido en cocina', preparando: 'En el horno', listo: 'Listo para llevar', entregado: 'Entregado' };
+export const ETIQUETA_COCINA: Record<EstadoCocina, string> = { nuevo: 'Enviado', preparando: 'En preparación', listo: 'En preparación', entregado: 'Entregado' };
 export const mmss = (ms: number) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
 export const minutos = (ms: number) => Math.floor(Math.max(0, ms) / 60000);

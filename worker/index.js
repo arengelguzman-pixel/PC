@@ -506,7 +506,7 @@ function igual(a, b) {
 // src/index.js
 var index_default = {
   async fetch(request, env, ctx) {
-    const ALIAS = { garaje: "elgaraje-a3f9k2m8x1", "garaje-prueba": "elgaraje-prueba-x9q4" };
+    const ALIAS = { garaje: "elgaraje-a3f9k2m8x1", "garaje-prueba": "elgaraje-prueba-x9q4", "garaje-demo": "elgaraje-demo-w7k2p5" };
     const u = new URL(request.url);
     // webhook del bot de Telegram: "/start <local>-<codigo>" vincula al dueño con la sala de su local
     if (u.pathname === "/api/telegram" && request.method === "POST") {

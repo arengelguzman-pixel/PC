@@ -139,6 +139,29 @@ conservando la query, así que los QR de las mesas y los enlaces del personal so
 `https://pidemeza.com/garaje?mesa=3`, `…/garaje?vista=cocina`, `…/garaje?vista=caja`.
 Para un local nuevo: agregar su alias al mapa y publicar.
 
+## Fases de una comanda (desde el 9-oct-2026)
+
+Solo dos toques en Cocina: **Recibido ✓** (apaga la alarma y el cliente pasa a "En preparación") y
+**Entregada ✓**. El cliente ve: Enviado → En preparación → Entregado. El estado `listo` sigue
+existiendo en el Worker por compatibilidad, pero ya no se usa.
+
+## Reiniciar una sala (contador y pedidos desde cero)
+
+`POST /api/sala/<local>/reiniciar` con `{"admin": ADMIN_TOKEN}` borra pedidos, numeración
+(P-001…), cierres y archivo de comprobantes; conserva clave, QR de cobro, agotados y Telegram.
+El token está en `.dev.vars` (`ADMIN_TOKEN`) y como secret del Worker. El piloto `el-garaje`
+se reinició el 9-oct-2026: desde ahí todo lo que entra es real.
+
+```bash
+curl -X POST https://pidemeza.com/api/sala/el-garaje-demo/reiniciar -H 'content-type: application/json' -d '{"admin":"<ADMIN_TOKEN>"}'
+```
+
+## Links de El Garaje
+
+- `pidemeza.com/garaje` — piloto real (sala `el-garaje`, PIN de la pizzería).
+- `pidemeza.com/garaje-demo` — clon para demostraciones a otros locales (sala `el-garaje-demo`, clave `demo1234`). No mezcla datos con el piloto.
+- `pidemeza.com/garaje-prueba` — sandbox de desarrollo (sala `el-garaje-test`, clave `test1234`).
+
 ## Regla de fidelidad
 
 La IA arregla la **foto**, nunca la **comida**. Los prompts van en duro en el

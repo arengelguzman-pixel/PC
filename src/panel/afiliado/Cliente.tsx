@@ -12,7 +12,7 @@ import { precioDe, Foto, Agotada, Hoja } from './comunes';
 // El estado en vivo (pedidos / agotados / qr) llega por props desde el shell.
 
 const PASOS: { k: Pedido['cocina']; t: string }[] = [
-  { k: 'nuevo', t: 'Recibido' }, { k: 'preparando', t: 'En el horno' }, { k: 'listo', t: 'Listo' }, { k: 'entregado', t: 'Entregado' },
+  { k: 'nuevo', t: 'Enviado' }, { k: 'preparando', t: 'En preparación' }, { k: 'entregado', t: 'Entregado' },
 ];
 const COLOR_PAGO: Record<Pedido['pago'], string> = { pendiente: 'text-white/60', por_confirmar: 'text-maiz', confirmado: 'text-lima', rechazado: 'text-brasa' };
 const lineaTxt = (l: Linea) => `${l.q}× ${l.n}${l.tamT ? ` (${l.tamT}${l.borde ? ', borde de queso' : ''})` : ''}${l.extras?.length ? ` + ${l.extras.join(', ')}` : ''}${l.nota ? ` — ${l.nota}` : ''}`;
@@ -79,7 +79,8 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
       if (!antes || antes === firma) continue;
       if (p.pago === 'confirmado' && !antes.startsWith('confirmado')) avisar(`✅ Pago confirmado · ${p.id}`, 3500);
       else if (p.pago === 'rechazado' && !antes.startsWith('rechazado')) avisar(`❌ Comprobante rechazado · ${p.id}. Vuelve a subirlo.`, 4000);
-      else if (p.cocina === 'listo' && !antes.endsWith('listo')) avisar(`🍕 ${p.id} está listo`, 3500);
+      else if (p.cocina === 'preparando' && antes.endsWith('nuevo')) avisar(`👨‍🍳 ${p.id} ya está en preparación`, 3500);
+      else if (p.cocina === 'entregado' && !antes.endsWith('entregado')) avisar(`🍕 ${p.id} entregado. ¡Buen provecho!`, 3500);
     }
   });
 
@@ -279,7 +280,7 @@ function Seguimiento({ data, pedidos, conectado, onPagar }: { data: Afiliado; pe
           </span>
         </div>
         {pedidos.map((p) => {
-          const idx = Math.max(0, PASOS.findIndex((s) => s.k === p.cocina));
+          const idx = Math.max(0, PASOS.findIndex((s) => s.k === (p.cocina === 'listo' ? 'preparando' : p.cocina)));
           const faltaPago = p.metodo === 'qr' && (p.pago === 'pendiente' || p.pago === 'rechazado');
           const sufijo = p.pago === 'pendiente' ? (p.metodo === 'qr' ? ' · QR' : ' · en caja') : '';
           return (
@@ -293,7 +294,7 @@ function Seguimiento({ data, pedidos, conectado, onPagar }: { data: Afiliado; pe
               {/* pasos de cocina */}
               <div className="relative mt-3">
                 <div className="absolute top-[5px] left-[12.5%] right-[12.5%] h-0.5 bg-white/10" />
-                <div className="absolute top-[5px] left-[12.5%] h-0.5 transition-all duration-500" style={{ width: `${(idx / (PASOS.length - 1)) * 75}%`, background: 'var(--oro)' }} />
+                <div className="absolute top-[5px] h-0.5 transition-all duration-500" style={{ left: `${50 / PASOS.length}%`, width: `${(idx / (PASOS.length - 1)) * (100 - 100 / PASOS.length)}%`, background: 'var(--oro)' }} />
                 <div className="relative grid grid-cols-4">
                   {PASOS.map((s, i) => (
                     <div key={s.k} className="flex flex-col items-center">

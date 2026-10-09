@@ -232,6 +232,17 @@ export class Sala {
       return new Response(null, { status: 101, webSocket: cliente });
     }
 
+    // --- reinicio total (pedidos, numeración, cierres y archivo); conserva clave, QR, agotados y Telegram ---
+    if (sub === '/reiniciar' && req.method === 'POST') {
+      if (!this.env.ADMIN_TOKEN || body.admin !== this.env.ADMIN_TOKEN) return json({ ok: false, causa: 'admin' }, 403);
+      const keys = [];
+      for (const pref of ['p:', 'z:', 'c:', 'a:']) for (const k of (await this.ctx.storage.list({ prefix: pref })).keys()) keys.push(k);
+      keys.push('seq', 'seqZ', 'cierreDesde');
+      for (let i = 0; i < keys.length; i += 128) await this.ctx.storage.delete(keys.slice(i, i + 128));
+      this.broadcast({ type: 'estado', ...(await this.estado()) });
+      return json({ ok: true, borrados: keys.length });
+    }
+
     // --- estado completo ---
     if (sub === '/pedidos' && req.method === 'GET') return json({ ok: true, ...(await this.estado()) });
 
