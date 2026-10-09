@@ -103,7 +103,7 @@ export const elGaraje: Afiliado = {
     {
       k: 'hamburguesas', t: 'Hamburguesas', desc: 'Con papas fritas', porTamano: false,
       items: [
-        { slug: 'hamburguesa-simple', n: 'Hamburguesa simple', i: 'Carne, queso, lechuga y tomate, con papas', p: 25, foto: `${F}/hamburguesa.jpg` },
+        { slug: 'hamburguesa-simple', n: 'Hamburguesa simple', i: 'Carne, queso, lechuga y tomate, con papas', p: 25, foto: `${F}/hamburguesa-simple.jpg` },
         { slug: 'hamburguesa-especial', n: 'Hamburguesa especial', i: 'Carne, queso, lechuga, tomate, tocino, huevo y pepinillo, con papas', p: 30, foto: `${F}/hamburguesa.jpg` },
         { slug: 'hamburguesa-doble', n: 'Hamburguesa VIP doble', i: 'Doble carne, queso, lechuga, tomate, tocino, huevo y pepinillo, con papas', p: 36, foto: `${F}/hamburguesa-doble.jpg` },
       ],
@@ -113,7 +113,7 @@ export const elGaraje: Afiliado = {
       items: [
         { slug: 'salchipapa-clasica', n: 'Salchipapa clásica', i: 'Salchicha y papas', p: 25, foto: `${F}/salchipapa-clasica.jpg` },
         { slug: 'salchipapa-especial', n: 'Salchipapa especial', i: 'Salchicha, queso muzzarela, choclo y papas', p: 30, foto: `${F}/salchipapa-especial.jpg` },
-        { slug: 'pechuga-plancha', n: 'Pechuga a la plancha', i: 'Pollo, lechuga, tomate, choclo y limón', p: 25, foto: `${F}/pechuga.jpg` },
+        { slug: 'pechuga-plancha', n: 'Pechuga a la plancha', i: 'Pechuga de pollo a la plancha con papas fritas', p: 25, foto: `${F}/pechuga.jpg` },
         { slug: 'papas-fritas', n: 'Plato de papas fritas', i: 'Para compartir', p: 12, foto: `${F}/papas-fritas.jpg` },
       ],
     },
@@ -125,10 +125,10 @@ export const elGaraje: Afiliado = {
         { slug: 'gaseosa-peque', n: 'Gaseosa peque', i: 'Coca Cola, Fanta o Sprite', p: 6, foto: `${F}/coca-peque.jpg`, fotos: { 'Coca Cola': `${F}/coca-peque.jpg`, Fanta: `${F}/fanta-peque.jpg`, Sprite: `${F}/sprite-peque.jpg` }, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
         { slug: 'gaseosa-mini', n: 'Gaseosa mini', i: 'Coca Cola, Fanta o Sprite', p: 4, foto: `${F}/coca-mini.jpg`, fotos: { 'Coca Cola': `${F}/coca-mini.jpg`, Fanta: `${F}/fanta-mini.jpg`, Sprite: `${F}/sprite-mini.jpg` }, opciones: ['Coca Cola', 'Fanta', 'Sprite'] },
         { slug: 'jarra-grande-jugo', n: 'Jarra grande de jugo', i: 'Limonada o maracuyá · 2 litros', p: 20, foto: `${F}/jarra-limonada.jpg`, opciones: ['Limonada', 'Maracuyá'] },
-        { slug: 'jarra-pequena-jugo', n: 'Jarra pequeña de jugo', i: 'Limonada o maracuyá · 1 litro', p: 15, foto: `${F}/jarra-limonada.jpg`, opciones: ['Limonada', 'Maracuyá'] },
+        { slug: 'jarra-pequena-jugo', n: 'Jarra pequeña de jugo', i: 'Limonada o maracuyá · 1 litro', p: 15, foto: `${F}/jarra-pequena-limonada.jpg`, opciones: ['Limonada', 'Maracuyá'] },
         { slug: 'vaso-jugo', n: 'Vaso de jugo', i: 'Limonada o maracuyá', p: 6, foto: `${F}/vaso-limonada.jpg`, opciones: ['Limonada', 'Maracuyá'] },
         { slug: 'jarra-grande-durazno', n: 'Jarra grande de durazno', i: '2 litros', p: 25, foto: `${F}/jarra-durazno.jpg` },
-        { slug: 'jarra-pequena-durazno', n: 'Jarra pequeña de durazno', i: '1 litro', p: 20, foto: `${F}/jarra-durazno.jpg` },
+        { slug: 'jarra-pequena-durazno', n: 'Jarra pequeña de durazno', i: '1 litro', p: 20, foto: `${F}/jarra-pequena-durazno.jpg` },
         { slug: 'vaso-durazno', n: 'Vaso de durazno', i: 'Jugo de durazno', p: 9, foto: `${F}/vaso-durazno.jpg` },
         { slug: 'cerveza-huari', n: 'Cerveza Huari', i: 'Bien fría', p: 20, foto: `${F}/cerveza-huari.jpg` },
         { slug: 'cerveza-corona', n: 'Cerveza Corona', i: 'Bien fría', p: 20, foto: `${F}/cerveza-corona.jpg` },
