@@ -15,7 +15,7 @@ const PASOS: { k: Pedido['cocina']; t: string }[] = [
   { k: 'nuevo', t: 'Recibido' }, { k: 'preparando', t: 'En el horno' }, { k: 'listo', t: 'Listo' }, { k: 'entregado', t: 'Entregado' },
 ];
 const COLOR_PAGO: Record<Pedido['pago'], string> = { pendiente: 'text-white/60', por_confirmar: 'text-maiz', confirmado: 'text-lima', rechazado: 'text-brasa' };
-const lineaTxt = (l: Linea) => `${l.q}× ${l.n}${l.tamT ? ` (${l.tamT}${l.borde ? ', borde de queso' : ''})` : ''}${l.nota ? ` — ${l.nota}` : ''}`;
+const lineaTxt = (l: Linea) => `${l.q}× ${l.n}${l.tamT ? ` (${l.tamT}${l.borde ? ', borde de queso' : ''})` : ''}${l.extras?.length ? ` + ${l.extras.join(', ')}` : ''}${l.nota ? ` — ${l.nota}` : ''}`;
 const resumenDe = (p: Pedido) => p.items.map(lineaTxt).join(', ');
 const textoWhatsApp = (data: Afiliado, p: Pedido) =>
   `🍕 Pedido ${p.id} · ${data.nombre}${p.mesa ? `\nMesa ${p.mesa}` : ''}\n\n${p.items.map((l) => `• ${lineaTxt(l)} — Bs ${l.p * l.q}`).join('\n')}\n\nTotal: Bs ${p.total}\nPago: ${ETIQUETA_PAGO[p.pago]}${p.nota ? `\nNota: ${p.nota}` : ''}`;
@@ -25,6 +25,7 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
 }) {
   const [carrito, setCarrito] = useState<Linea[]>([]);
   const [detalle, setDetalle] = useState<Item | null>(null);
+  const [eligiendo, setEligiendo] = useState<Item | null>(null);   // ítem con opciones (Coca/Fanta/Sprite…)
   const [verCarrito, setVerCarrito] = useState(false);
   const [pagoId, setPagoId] = useState<string | null>(null);
   const [mios, setMios] = useState<string[]>(() => misPedidos(data.local));
@@ -82,16 +83,20 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
     }
   });
 
-  const agregar = (item: Item, tam: Tamano | null, borde: boolean, q: number, nota = '') => {
-    const p = tam ? precioDe(tam, borde) : (item.p ?? 0);
-    if (!p) return;
-    const key = `${item.slug}|${tam?.k ?? '-'}|${borde ? 'b' : ''}${nota ? `|${nota.toLowerCase()}` : ''}`;
+  type Adic = { extras?: string[]; extraP?: number; mitad?: Item | null; opcion?: string };
+  const agregar = (item: Item, tam: Tamano | null, borde: boolean, q: number, nota = '', ad: Adic = {}) => {
+    const base = tam ? precioDe(tam, borde) : (item.p ?? 0);
+    if (!base) return;
+    const p = base + (ad.extraP ?? 0);
+    const n = ad.mitad ? `Mitad ${item.n} · Mitad ${ad.mitad.n}` : ad.opcion ? `${item.n} · ${ad.opcion}` : item.n;
+    const extras = ad.extras?.length ? ad.extras : undefined;
+    const key = [item.slug, tam?.k ?? '-', borde ? 'b' : '', ad.mitad?.slug ?? '', ad.opcion ?? '', (extras ?? []).join('+'), nota.toLowerCase()].join('|');
     setCarrito((c) => {
       const i = c.findIndex((l) => l.key === key);
-      if (i >= 0) { const n = [...c]; n[i] = { ...n[i], q: n[i].q + q }; return n; }
-      return [...c, { key, slug: item.slug, n: item.n, tamK: tam?.k ?? '', tamT: tam?.t ?? '', borde, p, q, ...(nota ? { nota } : {}) }];
+      if (i >= 0) { const n2 = [...c]; n2[i] = { ...n2[i], q: n2[i].q + q }; return n2; }
+      return [...c, { key, slug: item.slug, n, tamK: tam?.k ?? '', tamT: tam?.t ?? '', borde, p, q, ...(nota ? { nota } : {}), ...(extras ? { extras } : {}) }];
     });
-    avisar(`Agregado · ${item.n}${tam ? ` ${tam.t}` : ''}`, 1600);
+    avisar(`Agregado · ${n}${tam ? ` ${tam.t}` : ''}`, 1600);
   };
   const cambiarQ = (key: string, d: number) => setCarrito((c) => c.map((l) => l.key === key ? { ...l, q: l.q + d } : l).filter((l) => l.q > 0));
   const total = useMemo(() => carrito.reduce((a, l) => a + l.p * l.q, 0), [carrito]);
@@ -168,7 +173,7 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
                   )}
                   <div className="p-4 flex items-center justify-between gap-3">
                     <div className="min-w-0"><h3 className="text-xl font-bold leading-tight">{it.n}</h3><p className="text-[13px] text-white/60 mt-1">{it.i}</p></div>
-                    {!no && it.p ? <button onClick={() => agregar(it, null, false, 1)} className="shrink-0 font-bold text-sm px-4 py-2.5 rounded-full text-black active:scale-[.97] transition-transform font-mono tabular-nums" style={{ background: 'var(--oro)' }}>Bs {it.p} +</button> : null}
+                    {!no && it.p ? <button onClick={() => it.opciones ? setEligiendo(it) : agregar(it, null, false, 1)} className="shrink-0 font-bold text-sm px-4 py-2.5 rounded-full text-black active:scale-[.97] transition-transform font-mono tabular-nums" style={{ background: 'var(--oro)' }}>Bs {it.p} +</button> : null}
                   </div>
                 </article>
               );
@@ -210,7 +215,7 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
                     <p className="text-[12px] text-white/55 mt-1">{it.i}</p>
                     <div className="flex items-center justify-between mt-2">
                       <span className="font-mono tabular-nums text-sm" style={{ color: 'var(--oro)' }}>{it.p ? `Bs ${it.p}` : 'Consultar'}</span>
-                      {!no && it.p ? <button onClick={() => agregar(it, null, false, 1)} className="w-8 h-8 rounded-full text-black text-lg font-bold" style={{ background: 'var(--oro)' }}>+</button> : null}
+                      {!no && it.p ? <button onClick={() => it.opciones ? setEligiendo(it) : agregar(it, null, false, 1)} className="w-8 h-8 rounded-full text-black text-lg font-bold" style={{ background: 'var(--oro)' }}>+</button> : null}
                     </div>
                   </div>
                 </article>
@@ -233,7 +238,24 @@ export default function Cliente({ data, mesa, agotados, qr, pedidos, conectado }
       )}
 
       {/* hoja: detalle de pizza (tamaño + borde + cantidad) */}
-      {detalle && <HojaDetalle data={data} item={detalle} onClose={() => setDetalle(null)} onAdd={(t, b, q, nota) => { agregar(detalle, t, b, q, nota); setDetalle(null); }} />}
+      {detalle && <HojaDetalle data={data} item={detalle} onClose={() => setDetalle(null)} otras={(data.categorias.find((c) => c.items.includes(detalle))?.items ?? []).filter((i) => i.slug !== detalle.slug && !agotado(i.slug))} onAdd={(t, b, q, nota, extras, extraP, mitad) => { agregar(detalle, t, b, q, nota, { extras, extraP, mitad }); setDetalle(null); }} />}
+
+      {/* hoja: elige una opción (Coca/Fanta/Sprite, res/pollo/mixta…) */}
+      {eligiendo && (
+        <Hoja onClose={() => setEligiendo(null)}>
+          <div className="px-5 pt-3 pb-6">
+            <h3 className="text-xl font-extrabold">{eligiendo.n}</h3>
+            <p className="text-sm text-white/60 mt-1">Elige una opción</p>
+            <div className="flex flex-col gap-2 mt-4">
+              {eligiendo.opciones!.map((o) => (
+                <button key={o} onClick={() => { agregar(eligiendo, null, false, 1, '', { opcion: o }); setEligiendo(null); }} className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-white/15 text-left font-semibold active:scale-[.98] transition-transform">
+                  <span>{o}</span><span className="font-mono tabular-nums" style={{ color: 'var(--oro)' }}>Bs {eligiendo.p}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </Hoja>
+      )}
 
       {/* hoja: carrito + checkout */}
       {verCarrito && <HojaCarrito data={data} mesa={mesa} hayQr={!!qr} carrito={carrito} total={total} cambiarQ={cambiarQ} onClose={() => setVerCarrito(false)} onPedir={pedir} />}
@@ -301,25 +323,37 @@ function Seguimiento({ data, pedidos, conectado, onPagar }: { data: Afiliado; pe
 }
 
 /* ---------- hoja: detalle (tamaño + borde + cantidad) ---------- */
-function HojaDetalle({ data, item, onClose, onAdd }: { data: Afiliado; item: Item; onClose: () => void; onAdd: (t: Tamano, borde: boolean, q: number, nota: string) => void }) {
+function HojaDetalle({ data, item, otras, onClose, onAdd }: {
+  data: Afiliado; item: Item; otras: Item[]; onClose: () => void;
+  onAdd: (t: Tamano, borde: boolean, q: number, nota: string, extras: string[], extraP: number, mitad: Item | null) => void;
+}) {
   const [tam, setTam] = useState<Tamano>(data.tamanos[0]);
   const [borde, setBorde] = useState(false);
   const [q, setQ] = useState(1);
   const [nota, setNota] = useState('');
-  const p = precioDe(tam, borde && !!tam.borde) * q;
+  const [extras, setExtras] = useState<string[]>([]);
+  const [mitad, setMitad] = useState<Item | null>(null);          // segundo sabor (mitad y mitad)
+  const [eligiendoMitad, setEligiendoMitad] = useState(false);
+  const puedeMitad = !!data.mitad?.includes(tam.k) && otras.length > 0;
+  const precioExtra = (e: string) => data.extras?.find((g) => g.items.includes(e))?.precio[tam.k] ?? 0;
+  const extraP = extras.reduce((a, e) => a + precioExtra(e), 0);
+  const p = (precioDe(tam, borde && !!tam.borde) + extraP) * q;
+  const elegirTam = (t: Tamano) => { setTam(t); if (!t.borde) setBorde(false); if (!data.mitad?.includes(t.k)) { setMitad(null); setEligiendoMitad(false); } };
+  const alternarExtra = (e: string) => setExtras((x) => (x.includes(e) ? x.filter((y) => y !== e) : [...x, e]));
+  const LIMA = '#C6FF3D';
   return (
     <Hoja onClose={onClose}>
       {item.foto && <div className="relative aspect-[16/10] mx-4 mt-2 rounded-2xl overflow-hidden bg-[#111]"><Foto src={item.foto} alt={item.n} /></div>}
       <div className="px-5 pt-4">
-        <h3 className="text-2xl font-extrabold leading-tight">{item.n}</h3>
-        <p className="text-sm text-white/60 mt-1">{item.i}</p>
+        <h3 className="text-2xl font-extrabold leading-tight">{mitad ? `Mitad ${item.n} · Mitad ${mitad.n}` : item.n}</h3>
+        <p className="text-sm text-white/60 mt-1">{mitad ? `${item.i} / ${mitad.i}` : item.i}</p>
 
         <p className="text-[11px] uppercase tracking-[0.18em] text-white/45 mt-5 mb-2">Tamaño</p>
         <div className="flex flex-col gap-2">
           {data.tamanos.map((t) => {
             const sel = t.k === tam.k;
             return (
-              <button key={t.k} onClick={() => { setTam(t); if (!t.borde) setBorde(false); }} className={`flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-colors ${sel ? 'border-transparent text-black' : 'border-white/15 text-white'}`} style={sel ? { background: 'var(--oro)' } : undefined}>
+              <button key={t.k} onClick={() => elegirTam(t)} className={`flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-colors ${sel ? 'border-transparent text-black' : 'border-white/15 text-white'}`} style={sel ? { background: 'var(--oro)' } : undefined}>
                 <span className="font-semibold">{t.t}</span>
                 <span className="font-mono tabular-nums font-bold">Bs {t.p}</span>
               </button>
@@ -334,10 +368,39 @@ function HojaDetalle({ data, item, onClose, onAdd }: { data: Afiliado; item: Ite
           </button>
         )}
 
+        {/* mitad y mitad: en otro color para que se note (desde Mediana) */}
+        {puedeMitad && (
+          <div className="mt-3">
+            <button onClick={() => { if (mitad) { setMitad(null); setEligiendoMitad(false); } else setEligiendoMitad((v) => !v); }} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 text-left transition-colors ${mitad || eligiendoMitad ? 'border-transparent text-black' : 'text-white'}`} style={mitad || eligiendoMitad ? { background: LIMA } : { borderColor: LIMA }}>
+              <span className="font-semibold">½ Mitad y mitad</span>
+              <span className="text-xs">{mitad ? `con ${mitad.n} · quitar` : 'elige el otro sabor'}</span>
+            </button>
+            {eligiendoMitad && !mitad && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {otras.map((o) => <button key={o.slug} onClick={() => { setMitad(o); setEligiendoMitad(false); }} className="text-sm px-3 py-2 rounded-full border border-white/15 text-white">{o.n}</button>)}
+              </div>
+            )}
+          </div>
+        )}
+
+        {data.extras?.length ? (
+          <>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-white/45 mt-5 mb-2">Extras</p>
+            {data.extras.map((g) => (
+              <div key={g.t} className="mb-2.5">
+                <p className="text-xs text-white/45 mb-1.5">{g.t} · <span className="font-mono">+ Bs {g.precio[tam.k] ?? 0}</span> c/u</p>
+                <div className="flex flex-wrap gap-2">
+                  {g.items.map((e) => { const on = extras.includes(e); return <button key={e} onClick={() => alternarExtra(e)} className={`text-sm px-3 py-2 rounded-full border transition-colors ${on ? 'border-transparent text-black font-semibold' : 'border-white/15 text-white'}`} style={on ? { background: 'var(--oro)' } : undefined}>{on ? '✓ ' : '+ '}{e}</button>; })}
+                </div>
+              </div>
+            ))}
+          </>
+        ) : null}
+
         {data.personalizar && (
           <>
             <p className="text-[11px] uppercase tracking-[0.18em] text-white/45 mt-5 mb-2">¿Algo en particular?</p>
-            <input value={nota} onChange={(e) => setNota(e.target.value.slice(0, 80))} placeholder="Ej: sin aceitunas, bien cocida, mitad y mitad…" className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-3 text-sm outline-none focus:border-white/40" />
+            <input value={nota} onChange={(e) => setNota(e.target.value.slice(0, 80))} placeholder="Ej: sin aceitunas, bien cocida…" className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-3 text-sm outline-none focus:border-white/40" />
           </>
         )}
 
@@ -350,7 +413,7 @@ function HojaDetalle({ data, item, onClose, onAdd }: { data: Afiliado; item: Ite
           <span className="font-mono tabular-nums text-xl font-bold" style={{ color: 'var(--oro)' }}>Bs {p}</span>
         </div>
 
-        <button onClick={() => onAdd(tam, borde && !!tam.borde, q, nota.trim())} className="mt-4 mb-5 w-full py-4 rounded-2xl font-bold text-lg text-black active:scale-[.98] transition-transform" style={{ background: 'var(--oro)' }}>Agregar · Bs {p}</button>
+        <button onClick={() => onAdd(tam, borde && !!tam.borde, q, nota.trim(), extras, extraP, mitad)} className="mt-4 mb-5 w-full py-4 rounded-2xl font-bold text-lg text-black active:scale-[.98] transition-transform" style={{ background: 'var(--oro)' }}>Agregar · Bs {p}</button>
       </div>
     </Hoja>
   );
@@ -389,6 +452,7 @@ function HojaCarrito({ data, mesa, hayQr, carrito, total, cambiarQ, onClose, onP
               <div className="min-w-0 flex-1">
                 <div className="font-semibold leading-tight">{l.n}</div>
                 <div className="text-xs text-white/50 mt-0.5">{l.tamT}{l.borde ? ' · borde de queso' : ''}{l.tamT ? ` · Bs ${l.p} c/u` : ''}</div>
+                {l.extras?.length ? <div className="text-xs text-white/60 mt-0.5">+ {l.extras.join(', ')}</div> : null}
                 {l.nota && <div className="text-xs mt-0.5 italic" style={{ color: 'var(--oro)' }}>“{l.nota}”</div>}
               </div>
               <div className="flex items-center gap-2">

@@ -214,7 +214,7 @@ export default function Cocina({ data, pedidos, agotados, clave, conectado, sali
                   <span className={`font-press-start text-[7px] px-2 py-1 tracking-wider ${cPago}`}>{tPago}</span>
                 </div>
                 <ul className="mt-2 font-mono text-xs text-crema/85 leading-relaxed">
-                  {p.items.map((l) => <li key={l.key}>{l.q}× {l.n}{l.tamT ? ` · ${l.tamT}` : ''}{l.borde ? ' · borde' : ''}{l.nota && <span className="text-maiz"> — {l.nota}</span>}</li>)}
+                  {p.items.map((l) => <li key={l.key}>{l.q}× {l.n}{l.tamT ? ` · ${l.tamT}` : ''}{l.borde ? ' · borde' : ''}{l.extras?.length ? <span className="text-lima"> + {l.extras.join(', ')}</span> : null}{l.nota && <span className="text-maiz"> — {l.nota}</span>}</li>)}
                 </ul>
                 {p.nota && <p className="mt-2 text-xs text-maiz italic">“{p.nota}”</p>}
                 {pend && (

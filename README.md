@@ -76,6 +76,9 @@ se edita el archivo y se publica. Cambios típicos:
 - **Foto:** `foto` apunta a `public/afiliados/el-garaje/pizzas/<slug>.jpg` (cuadrada, 1024 px).
 - **Interfaz:** `oro` (color de marca de los botones), `personalizar` (casilla "¿Algo en particular?"),
   `icono` (ícono al agregar a inicio), `logo`, `bajada`, `whatsapp`/`telefonoVisible`.
+- **Extras de pizza:** `extras` (grupos con precio por tamaño). **Mitad y mitad:** `mitad` lista los
+  tamaños que lo permiten (botón verde lima en la ventana de la pizza; mismo precio del tamaño).
+- **"Elige una" al agregar** (Coca/Fanta/Sprite, res/pollo/mixta): `opciones: ['…']` en el ítem.
 - **Agotar un plato por un día:** eso no se edita aquí; se hace desde Cocina → Disponibilidad.
 
 Publicar (1 minuto):

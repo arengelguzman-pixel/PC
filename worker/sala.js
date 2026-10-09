@@ -251,6 +251,7 @@ export class Sala {
           tamK: String(l.tamK || '').slice(0, 20), tamT: String(l.tamT || '').slice(0, 20),
           borde: !!l.borde, p: Number(l.p) || 0, q: Math.max(1, Math.min(20, Number(l.q) || 1)),
           ...(l.nota ? { nota: String(l.nota).slice(0, 80) } : {}),
+          ...(Array.isArray(l.extras) && l.extras.length ? { extras: l.extras.slice(0, 12).map((x) => String(x).slice(0, 40)) } : {}),
         })),
         nota: String(body.nota || '').slice(0, 160),
         total, metodo,

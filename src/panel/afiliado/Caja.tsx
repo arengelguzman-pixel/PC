@@ -160,7 +160,7 @@ export default function Caja({ data, pedidos, qr, cierreDesde, clave, conectado,
           <span className={`font-press-start text-[7px] px-2 py-1 tracking-wider ${colorPago(p)}`}>{ETIQUETA_PAGO[p.pago].toUpperCase()}</span>
         </div>
         <ul className="mt-2 font-mono text-xs text-crema/85 leading-relaxed">
-          {p.items.map((l) => <li key={l.key}>{l.q}× {l.n}{l.tamT ? ` · ${l.tamT}` : ''}{l.borde ? ' · borde' : ''}{l.nota ? ` — ${l.nota}` : ''}</li>)}
+          {p.items.map((l) => <li key={l.key}>{l.q}× {l.n}{l.tamT ? ` · ${l.tamT}` : ''}{l.borde ? ' · borde' : ''}{l.extras?.length ? ` + ${l.extras.join(', ')}` : ''}{l.nota ? ` — ${l.nota}` : ''}</li>)}
         </ul>
         {p.nota && <p className="mt-2 text-xs text-maiz italic">“{p.nota}”</p>}
         <div className="flex justify-between items-center gap-2 mt-3 pt-2 border-t border-crema/10">
