@@ -7,7 +7,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { COLOR, svgIsotipo } from '../src/marca/meza';
 
-const [qrDir, outDir, nArg] = process.argv.slice(2);
+const [qrDir, outDir, nArg, demo] = process.argv.slice(2); // 4º arg opcional: 'demo' → tarjetas marcadas DEMO
 if (!qrDir || !outDir || !nArg) { console.log('uso: npx tsx scripts/qr-tarjetas.ts <qrDir> <outDir> <cantidad>'); process.exit(1); }
 const n = parseInt(nArg, 10);
 const out = resolve(outDir); mkdirSync(out, { recursive: true });
@@ -18,7 +18,8 @@ const tarjeta = (i: number) => `<div class="card">
   <div class="marca"><div class="iso">${svgIsotipo({ epoca: 'pixel', id: 'z' + i })}</div><div class="ps nombre">MEZA</div></div>
   <div class="qr"><img src="${pathToFileURL(resolve(qrDir, `qr-${i}.png`)).href}"></div>
   <div class="ps mesa">MESA ${i}</div>
-  <div class="hint">Escanea y pide desde tu mesa</div>
+  <div class="hint">${demo ? 'Mesa de demostración · no es un pedido real' : 'Escanea y pide desde tu mesa'}</div>
+  ${demo ? '<div class="ps demo">DEMO</div>' : ''}
   <div class="pie"><span>MEZA by ZETA</span><span>La mesa que atiende.</span></div>
 </div>`;
 
@@ -35,6 +36,7 @@ html,body{margin:0;background:${COLOR.negro};overflow:hidden}
 .qr img{width:820px;height:820px;image-rendering:pixelated;display:block}
 .mesa{margin-top:100px;font-size:120px;color:${MAIZ};text-shadow:8px 8px 0 ${ROJO}}
 .hint{margin-top:56px;font-family:'Inter Tight';font-weight:500;font-size:40px;color:${COLOR.crema};opacity:.75}
+.demo{position:absolute;top:84px;right:90px;font-size:44px;color:#000;background:${MAIZ};padding:22px 28px;border:8px solid ${ROJO};transform:rotate(6deg)}
 .pie{position:absolute;left:90px;right:90px;bottom:70px;border-top:6px solid ${COLOR.lima};padding-top:30px;display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-size:26px;color:${COLOR.crema};opacity:.55}
 </style></head><body><div id="w"></div>
 <script>const T=${JSON.stringify(Array.from({ length: n }, (_, k) => tarjeta(k + 1)))};const p=+new URLSearchParams(location.search).get('p');document.getElementById('w').innerHTML=T[p-1]||'';</script>
